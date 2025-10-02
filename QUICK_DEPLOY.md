@@ -43,10 +43,10 @@
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/autodescribe-backend)
 
 ### Deploy Frontend to Vercel
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/autodescribe&project-name=autodescribe&root-directory=frontend-clean)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Nimieeee/AutoDescribe&project-name=autodescribe&root-directory=frontend-clean)
 
 ### Deploy to Netlify
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/yourusername/autodescribe&base=frontend-clean)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Nimieeee/AutoDescribe&base=frontend-clean)
 
 ## Alternative: All-in-One Platforms
 

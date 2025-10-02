@@ -29,7 +29,7 @@ git add .
 git commit -m "Initial commit - AutoDescribe ready for deployment"
 
 # Create repo on GitHub and push
-git remote add origin https://github.com/yourusername/autodescribe.git
+git remote add origin https://github.com/Nimieeee/AutoDescribe.git
 git branch -M main
 git push -u origin main
 ```
@@ -222,9 +222,9 @@ app.use(cors({
 Add these to your README:
 
 ```markdown
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/autodescribe/tree/main/frontend-clean)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Nimieeee/AutoDescribe/tree/main/frontend-clean)
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/yourusername/autodescribe/tree/main/backend-clean)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/Nimieeee/AutoDescribe/tree/main/backend-clean)
 ```
 
 ### Automated Deployment Script
