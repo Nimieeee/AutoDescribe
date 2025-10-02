@@ -1,11 +1,12 @@
 [build]
   base = "frontend-clean"
-  command = "npm run build"
+  command = "npm install && npm run build"
   publish = ".next"
 
 [build.environment]
   NODE_VERSION = "18"
   NPM_VERSION = "9"
+  NODE_ENV = "production"
 
 # Redirect all routes to index.html for SPA behavior
 [[redirects]]

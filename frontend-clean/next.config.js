@@ -5,9 +5,14 @@ const nextConfig = {
   images: {
     unoptimized: true
   },
-  // Enable static optimization where possible
-  experimental: {
-    optimizeCss: true
+  // Ensure proper static file handling
+  assetPrefix: '',
+  // Disable webpack cache for more reliable builds
+  webpack: (config, { dev, isServer }) => {
+    if (!dev && !isServer) {
+      config.cache = false;
+    }
+    return config;
   }
 }
 
