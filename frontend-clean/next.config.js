@@ -1,6 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // App directory is now stable in Next.js 14
+  // Optimized for Netlify deployment
+  trailingSlash: true,
+  images: {
+    unoptimized: true
+  },
+  // Enable static optimization where possible
+  experimental: {
+    optimizeCss: true
+  }
 }
 
 module.exports = nextConfig

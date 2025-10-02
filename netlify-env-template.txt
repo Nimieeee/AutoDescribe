@@ -1,0 +1,15 @@
+# AutoDescribe Netlify Environment Variables
+# Copy these to Netlify Dashboard → Site Settings → Environment Variables
+
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.your-anon-key
+
+# Backend API URL (Render deployment)
+NEXT_PUBLIC_BACKEND_URL=https://autodescribe-backend.onrender.com
+
+# Instructions:
+# 1. Replace 'your-project-id' with your actual Supabase project ID
+# 2. Replace 'your-anon-key' with your actual Supabase anon key
+# 3. Replace backend URL with your actual Render deployment URL
+# 4. Add these variables in Netlify Dashboard under Site Settings → Environment Variables
