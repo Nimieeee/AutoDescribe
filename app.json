@@ -1,0 +1,40 @@
+{
+  "name": "AutoDescribe",
+  "description": "AI-powered product description generator with RAG technology",
+  "repository": "https://github.com/yourusername/autodescribe",
+  "logo": "https://cdn.jsdelivr.net/gh/yourusername/autodescribe/logo.png",
+  "keywords": ["ai", "product-descriptions", "rag", "mistral", "nextjs", "typescript"],
+  "success_url": "/",
+  "env": {
+    "NODE_ENV": {
+      "description": "Node environment",
+      "value": "production"
+    },
+    "DATABASE_URL": {
+      "description": "Supabase database connection string",
+      "required": true
+    },
+    "MISTRAL_API_KEY": {
+      "description": "Your Mistral AI API key",
+      "required": true
+    },
+    "CORS_ORIGIN": {
+      "description": "Frontend URL for CORS",
+      "required": false
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "free"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "scripts": {
+    "postdeploy": "echo 'AutoDescribe backend deployed successfully!'"
+  }
+}
