@@ -29,7 +29,7 @@ export interface AttributeConsistencyResult {
   inconsistent_examples: string[];
 }
 
-// Product data structure for analysis
+// Product data structure for analysis (matching actual database schema)
 export interface ProductData {
   id: string;
   sku?: string;
@@ -38,11 +38,7 @@ export interface ProductData {
   description?: string;
   category?: string;
   brand?: string;
-  weight?: string;
-  dimensions?: string;
-  color?: string;
-  material?: string;
-  availability?: string;
+  attributes?: any; // JSONB field containing additional attributes
   created_at?: Date;
   updated_at?: Date;
 }
@@ -51,23 +47,20 @@ export class DataQualityAnalyzer {
   private static instance: DataQualityAnalyzer;
   
   // Required fields for completeness analysis
-  private readonly requiredFields = ['sku', 'name', 'price', 'description'];
+  private readonly requiredFields = ['sku', 'name'];
   
-  // Optional fields that contribute to quality score
-  private readonly optionalFields = ['category', 'brand', 'weight', 'dimensions', 'color', 'material'];
+  // Optional fields that contribute to quality score (matching actual database schema)
+  private readonly optionalFields = ['price', 'description', 'category', 'brand', 'attributes'];
   
-  // Weight factors for quality score calculation
+  // Weight factors for quality score calculation (updated for actual schema)
   private readonly fieldWeights = {
-    sku: 0.25,
-    name: 0.25,
-    price: 0.20,
+    sku: 0.30,
+    name: 0.30,
+    price: 0.15,
     description: 0.15,
     category: 0.05,
     brand: 0.03,
-    weight: 0.02,
-    dimensions: 0.02,
-    color: 0.02,
-    material: 0.01
+    attributes: 0.02
   };
 
   private constructor() {}
@@ -249,8 +242,8 @@ export class DataQualityAnalyzer {
         this.analyzeDataNormalization()
       ]);
 
-      // Analyze consistency for key fields
-      const fieldsToAnalyze = ['price', 'weight', 'dimensions', 'category'];
+      // Analyze consistency for key fields (matching actual schema)
+      const fieldsToAnalyze = ['price', 'category', 'brand'];
       const attributeConsistency = await Promise.all(
         fieldsToAnalyze.map(field => this.analyzeAttributeConsistency(field))
       );
@@ -305,8 +298,8 @@ export class DataQualityAnalyzer {
     let totalConsistencyScore = 0;
     let fieldsAnalyzed = 0;
 
-    // Analyze normalization for specific fields
-    const fieldsToNormalize = ['price', 'weight', 'dimensions'];
+    // Analyze normalization for specific fields (matching actual schema)
+    const fieldsToNormalize = ['price'];
     
     fieldsToNormalize.forEach(field => {
       const values = products

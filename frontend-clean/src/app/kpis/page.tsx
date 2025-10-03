@@ -47,6 +47,9 @@ export default function KPIDashboard() {
     try {
       trackUserInteraction('load', 'kpi_data', { action: 'refresh' })
       
+      // Use environment variable for backend URL, fallback to localhost for development
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
+      
       // Load data from multiple KPI endpoints
       const [
         dataQualityResponse,
@@ -54,10 +57,10 @@ export default function KPIDashboard() {
         realTimeMetricsResponse,
         searchSuccessResponse
       ] = await Promise.all([
-        fetch('http://localhost:3000/api/kpi/data-quality/report'),
-        fetch('http://localhost:3000/api/kpi/system/health'),
-        fetch('http://localhost:3000/api/kpi/real-time/metrics'),
-        fetch('http://localhost:3000/api/kpi/user-experience/search-success-rate')
+        fetch(`${backendUrl}/api/kpi/data-quality/report`),
+        fetch(`${backendUrl}/api/kpi/system/health`),
+        fetch(`${backendUrl}/api/kpi/real-time/metrics`),
+        fetch(`${backendUrl}/api/kpi/user-experience/search-success-rate`)
       ])
       
       const [dataQuality, systemHealth, realTimeMetrics, searchSuccess] = await Promise.all([
@@ -118,7 +121,8 @@ export default function KPIDashboard() {
       trackUserInteraction('error', 'kpi_data', { error: 'load_failed' })
       
       // Fallback to mock data if API fails
-      const response = await fetch('http://localhost:3000/api/kpis')
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
+      const response = await fetch(`${backendUrl}/api/kpis`)
       const data = await response.json()
       
       if (data.success) {
