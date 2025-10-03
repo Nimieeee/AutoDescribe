@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase, Product } from '@/lib/supabase'
 import { csvRAGService } from '@/lib/csv-rag'
 import { useKPITracking } from '@/lib/kpi-client'
+import SearchSuggestions from '@/components/SearchSuggestions'
 
 export default function GeneratePage() {
   const [productSku, setProductSku] = useState('')
@@ -137,30 +138,38 @@ Experience the difference with ${product.name} - your satisfaction is our priori
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Content Generation</h2>
           
           <div className="space-y-4">
-            {/* Product Search */}
+            {/* Product Search with Suggestions */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Search Products (CSV Data)
               </label>
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by name, brand, or category..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
-                />
-                <button
-                  onClick={() => handleSearch(searchQuery)}
-                  disabled={searching}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:bg-gray-400"
-                >
-                  {searching ? '...' : 'Search'}
-                </button>
-              </div>
+              <SearchSuggestions
+                query={searchQuery}
+                onSelect={(suggestion) => {
+                  if (suggestion.type === 'product') {
+                    setProductSku(suggestion.value)
+                    setSearchQuery('')
+                    trackUserInteraction('select', 'search_suggestion', {
+                      type: suggestion.type,
+                      value: suggestion.value
+                    })
+                  } else {
+                    // For category/brand selections, perform search
+                    setSearchQuery(suggestion.value)
+                    handleSearch(suggestion.value)
+                  }
+                }}
+                onSearch={(query) => {
+                  setSearchQuery(query)
+                  if (query.trim()) {
+                    handleSearch(query)
+                  }
+                }}
+                placeholder="Search by product name, SKU, brand, or category..."
+                className="mb-4"
+              />
               
-              {/* Search Results */}
+              {/* Search Results (for category/brand searches) */}
               {searchResults.length > 0 && (
                 <div className="mt-2 max-h-40 overflow-y-auto border border-gray-200 rounded-md">
                   {searchResults.map((product, index) => (

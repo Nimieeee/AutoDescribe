@@ -71,6 +71,20 @@ Thumbs.db
 uploads/*
 !uploads/.gitkeep
 
-# Test files
-*.test.js
-*.spec.js
+# Test files (keep organized tests, ignore temporary ones)
+test-*.js
+*-test.js
+*.temp.js
+
+# Temporary documentation files
+*-temp.md
+*-draft.md
+debug-*.html
+
+# Generated diagrams (keep source, ignore generated)
+*.png
+*.pdf
+architecture-diagram-*.html
+
+# Cleanup tracking
+CODEBASE_CLEANUP_PLAN.md

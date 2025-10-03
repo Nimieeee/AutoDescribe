@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoDescribe System Architecture</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            color: #2d3748;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            color: #718096;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        
+        .architecture-diagram {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .layer {
+            margin-bottom: 20px;
+            border-radius: 15px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .layer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-color), var(--accent-light));
+        }
+        
+        .layer-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--text-color);
+        }
+        
+        .layer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .component {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid var(--accent-light);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .component:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .component-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .component-title {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 5px;
+        }
+        
+        .component-desc {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+        
+        /* Layer-specific styles */
+        .user-layer {
+            --accent-color: #3182ce;
+            --accent-light: #bee3f8;
+            --text-color: #2c5282;
+            background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+        }
+        
+        .cdn-layer {
+            --accent-color: #38a169;
+            --accent-light: #c6f6d5;
+            --text-color: #276749;
+            background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+        }
+        
+        .app-layer {
+            --accent-color: #d69e2e;
+            --accent-light: #faf089;
+            --text-color: #b7791f;
+            background: linear-gradient(135deg, #fffff0 0%, #faf089 100%);
+        }
+        
+        .ai-layer {
+            --accent-color: #805ad5;
+            --accent-light: #d6bcfa;
+            --text-color: #553c9a;
+            background: linear-gradient(135deg, #faf5ff 0%, #d6bcfa 100%);
+        }
+        
+        .data-layer {
+            --accent-color: #e53e3e;
+            --accent-light: #fed7d7;
+            --text-color: #c53030;
+            background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+        }
+        
+        .analytics-layer {
+            --accent-color: #319795;
+            --accent-light: #b2f5ea;
+            --text-color: #285e61;
+            background: linear-gradient(135deg, #f0fdfa 0%, #b2f5ea 100%);
+        }
+        
+        .flow-arrow {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 2rem;
+            color: #718096;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .metric-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        @media (max-width: 768px) {
+            .layer-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 AutoDescribe System Architecture</h1>
+            <p>AI-Powered Product Description Generation Platform</p>
+        </div>
+        
+        <div class="architecture-diagram">
+            <!-- User Layer -->
+            <div class="layer user-layer">
+                <div class="layer-title">👥 User Interface Layer</div>
+                <div class="layer-content">
+                    <div class="component">
+                        <span class="component-icon">💻</span>
+                        <div class="component-title">Web Application</div>
+                        <div class="component-desc">Next.js 14 + Tailwind CSS</div>
+                    </div>
+                    <div class="component">
+                        <span class="component-icon">📱</span>
+                        <div class="component-title">Mobile App</div>
+                        <div class="component-desc">Future: React Native</div>
+                    </div>
+                    <div class="component">
+                        <span class="component-icon">⚙️</span>
+                        <div class="component-title">Admin Panel</div>
+                        <div class="component-desc">Management Interface</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flow-arrow">⬇️</div>
+            
+            <!-- CDN Layer -->
+            <div class="layer cdn-layer">
+                <div class="layer-title">🌐 Content Delivery Network</div>
+                <div class="layer-content">
+                    <div class="component">
+                        <span class="component-icon">🚀</span>
+                        <div class="component-title">Netlify CDN</div>
+                        <div class="component-desc">Global Edge Network</div>
+                    </div>
+                    <div class="component">
+                        <span class="component-icon">⚡</span>
+                        <div class="component-title">Load Balancer</div>
+                        <div class="component-desc">Auto-scaling Traffic</div>
+                    </div>
+                    <div class="component">
+                        <span class="component-icon">🗄️</span>
+                        <div class="component-title">Edge Caching</div>
+                        <div class="component-desc">Performance Optimization</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flow-arrow">⬇️</div>
+            
+            <!-- Application Layer -->
+            <div class="layer app-layer">
+                <div class="layer-title">🔧 Application Services</div>
+                <div class="layer-content">
+                    <div class="component">
+                        <span class="component-icon">🖥️</span>
+                        <div class="component-title">Node.js API</div>
+                        <div class="component-desc">Express + TypeScript</div>
+                    </div>
+                    <div class="component">
+                        <span class="component-icon">🔐</span>
+                        <div class="component-title">Authentication</div>
+                        <div class="component-desc">Supabase Auth + JWT</div>
+                    </div>
+                    <div class="component">
+                        <span class="component-icon">📊</span>
+                        <div class="component-title">KPI Tracking</div>
+                        <div class="component-desc">Analytics Middleware</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flow-arrow">⬇️</div>
+            
+            <!-- AI/ML Layer -->
+            <div class="layer ai-layer">
+                <div class="layer-title">🧠 AI/ML Pipeline</div>
+                <div class="layer-content">
+                    <div class="component">
+                        <span class="component-icon">🤖</span>
+                        <div class="component-title">Mistral AI</div>
+                        <div class="component-desc">Large Language Model</div>
+                    </div>
+                    <div class="component">
+                        <span class="component-icon">🔍</span>
+                        <div class="component-title">RAG Engine</div>
+                        <div class="component-desc">Context Retrieval</div>
+                    </div>
+                    <div class="component">
+                        <span class="component-icon">⭐</span>
+                        <div class="component-title">Quality Evaluator</div>
+                        <div class="component-desc">5-Dimensional Scoring</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flow-arrow">⬇️</div>
+            
+            <!-- Data Layer -->
+            <div class="layer data-layer">
+                <div class="layer-title">🗃️ Data Storage</div>
+                <div class="layer-content">
+                    <div class="component">
+                        <span class="component-icon">🐘</span>
+                        <div class="component-title">Supabase PostgreSQL</div>
+                        <div class="component-desc">Primary Database</div>
+                    </div>
+                    <div class="component">
+                        <span class="component-icon">📋</span>
+                        <div class="component-title">Product Catalog</div>
+                        <div class="component-desc">10,850+ Products CSV</div>
+                    </div>
+                    <div class="component">
+                        <span class="component-icon">💾</span>
+                        <div class="component-title">Content Storage</div>
+                        <div class="component-desc">Generated Descriptions</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flow-arrow">⬇️</div>
+            
+            <!-- Analytics Layer -->
+            <div class="layer analytics-layer">
+                <div class="layer-title">📈 Analytics & Monitoring</div>
+                <div class="layer-content">
+                    <div class="component">
+                        <span class="component-icon">📊</span>
+                        <div class="component-title">KPI Dashboard</div>
+                        <div class="component-desc">Real-time Metrics</div>
+                    </div>
+                    <div class="component">
+                        <span class="component-icon">🎯</span>
+                        <div class="component-title">Success Criteria</div>
+                        <div class="component-desc">Quality Tracking</div>
+                    </div>
+                    <div class="component">
+                        <span class="component-icon">🚨</span>
+                        <div class="component-title">Alert System</div>
+                        <div class="component-desc">Performance Monitoring</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Key Metrics -->
+        <div class="metrics">
+            <div class="metric-card">
+                <div class="metric-value">95%</div>
+                <div class="metric-label">Faster Content Generation</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">89%</div>
+                <div class="metric-label">Content Approval Rate</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">99.9%</div>
+                <div class="metric-label">System Uptime</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">78%</div>
+                <div class="metric-label">Cost Reduction</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
