@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase, GeneratedContent } from '@/lib/supabase'
 import Link from 'next/link'
 import { useKPITracking } from '@/lib/kpi-client'
+import { BarChart3, CheckCircle, XCircle, Sparkles } from 'lucide-react'
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -91,7 +92,9 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
-            <div className="text-2xl">📊</div>
+            <div className="p-3 bg-blue-100 rounded-lg">
+              <BarChart3 className="w-6 h-6 text-blue-600" />
+            </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Content</p>
               <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
@@ -101,7 +104,11 @@ export default function Dashboard() {
 
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
-            <div className="text-2xl">⏳</div>
+            <div className="p-3 bg-yellow-100 rounded-lg">
+              <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Pending Review</p>
               <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
@@ -111,7 +118,9 @@ export default function Dashboard() {
 
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
-            <div className="text-2xl">✅</div>
+            <div className="p-3 bg-green-100 rounded-lg">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+            </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Approved</p>
               <p className="text-2xl font-bold text-green-600">{stats.approved}</p>
@@ -121,7 +130,9 @@ export default function Dashboard() {
 
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
-            <div className="text-2xl">❌</div>
+            <div className="p-3 bg-red-100 rounded-lg">
+              <XCircle className="w-6 h-6 text-red-600" />
+            </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Rejected</p>
               <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
@@ -138,7 +149,9 @@ export default function Dashboard() {
           onClick={() => trackUserInteraction('click', 'generate_content_card', { source: 'dashboard' })}
         >
           <div className="flex items-center">
-            <div className="text-3xl mr-4">✨</div>
+            <div className="p-3 bg-blue-500 rounded-lg mr-4">
+              <Sparkles className="w-8 h-8 text-white" />
+            </div>
             <div>
               <h3 className="text-xl font-semibold">Generate Content</h3>
               <p className="text-blue-100">Create new product descriptions with AI</p>

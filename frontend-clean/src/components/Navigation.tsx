@@ -2,16 +2,17 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { BarChart3, Sparkles, ClipboardList, TrendingUp, Target } from 'lucide-react'
 
 export default function Navigation() {
   const pathname = usePathname()
 
   const links = [
-    { href: '/', label: 'Dashboard', icon: '📊' },
-    { href: '/generate', label: 'Generate', icon: '✨' },
-    { href: '/review', label: 'Review', icon: '📋' },
-    { href: '/kpis', label: 'KPIs', icon: '📈' },
-    { href: '/success-criteria', label: 'Success Criteria', icon: '🎯' },
+    { href: '/', label: 'Dashboard', icon: BarChart3 },
+    { href: '/generate', label: 'Generate', icon: Sparkles },
+    { href: '/review', label: 'Review', icon: ClipboardList },
+    { href: '/kpis', label: 'KPIs', icon: TrendingUp },
+    { href: '/success-criteria', label: 'Success Criteria', icon: Target },
   ]
 
   return (
@@ -33,7 +34,7 @@ export default function Navigation() {
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  <span className="mr-2">{link.icon}</span>
+                  <link.icon className="w-4 h-4 mr-2" />
                   {link.label}
                 </Link>
               ))}

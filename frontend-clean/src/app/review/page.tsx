@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { supabase, GeneratedContent } from '@/lib/supabase'
+import { 
+  Lock, RefreshCw, CheckCircle, XCircle, Clock, 
+  BarChart3, AlertTriangle, Target, Trophy, Sparkles, FileText, AlertCircle
+} from 'lucide-react'
 
 export default function ReviewPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -152,9 +156,9 @@ export default function ReviewPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'approved': return '✅'
-      case 'rejected': return '❌'
-      default: return '⏳'
+      case 'approved': return <CheckCircle className="w-5 h-5 text-green-600" />
+      case 'rejected': return <XCircle className="w-5 h-5 text-red-600" />
+      default: return <Clock className="w-5 h-5 text-yellow-600" />
     }
   }
 
@@ -164,9 +168,12 @@ export default function ReviewPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="max-w-md w-full space-y-8">
           <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              🔒 Content Review Access
-            </h2>
+            <div className="flex items-center justify-center">
+              <Lock className="w-8 h-8 text-blue-600 mr-3" />
+              <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Content Review Access
+              </h2>
+            </div>
             <p className="mt-2 text-center text-sm text-gray-600">
               Enter password to access the review dashboard
             </p>
@@ -222,13 +229,15 @@ export default function ReviewPage() {
               onClick={loadContent}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
-              🔄 Refresh
+              <RefreshCw className="w-4 h-4 mr-2 inline" />
+              Refresh
             </button>
             <button
               onClick={handleLogout}
               className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
             >
-              🔒 Logout
+              <Lock className="w-4 h-4 mr-2 inline" />
+              Logout
             </button>
           </div>
         </div>
