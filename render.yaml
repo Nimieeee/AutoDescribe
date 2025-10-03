@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: autodescribe-backend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd backend-clean && npm install && npm run build
+    startCommand: cd backend-clean && npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: MISTRAL_API_KEY
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
