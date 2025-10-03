@@ -101,6 +101,7 @@ export class CSVRAGService {
     const product = demoProducts.find(p => p.sku === sku) || {
       sku,
       name: `Product ${sku}`,
+      breadcrumbs_text: 'Demo > Products > General',
       brandName: 'Demo Brand',
       primary_category: 'Electronics',
       description: 'Demo product for testing'
