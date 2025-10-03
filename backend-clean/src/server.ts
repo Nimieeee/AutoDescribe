@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import { productLoader } from './lib/product-loader';
 import { csvRAGService } from './lib/csv-rag';
-import { supabase, isSupabaseAvailable } from './lib/supabase';
+import { supabase } from './lib/supabase';
 import { aiService } from './lib/ai-service';
 import { QualityEvaluationService } from './services/evaluation';
 import { 
@@ -182,136 +182,132 @@ app.post('/api/generate-with-rag', async (req, res) => {
     
     const generatedText = aiResponse.generatedText;
 
-    // Save to Supabase (if available)
-    if (isSupabaseAvailable() && supabase) {
-      try {
-        // Find or create product in Supabase
-        let { data: product } = await supabase
+    // Save to Supabase
+    try {
+      // Find or create product in Supabase
+      let { data: product } = await supabase
+        .from('products')
+        .select('*')
+        .eq('sku', sku)
+        .single();
+
+      if (!product) {
+        const { data: newProduct, error: createError } = await supabase
           .from('products')
-          .select('*')
-          .eq('sku', sku)
+          .insert({
+            sku: ragContext.targetProduct.sku,
+            name: ragContext.targetProduct.name,
+            brand: ragContext.targetProduct.brandName,
+            category: ragContext.targetProduct.primary_category || ragContext.targetProduct.breadcrumbs_text,
+            price: ragContext.targetProduct.salePrice ? parseFloat(ragContext.targetProduct.salePrice) : null,
+            description: ragContext.targetProduct.description
+          })
+          .select()
           .single();
 
-        if (!product) {
-          const { data: newProduct, error: createError } = await supabase
-            .from('products')
-            .insert({
+        if (createError) {
+          console.error('Error creating product:', createError);
+        } else {
+          product = newProduct;
+        }
+      }
+
+      // Save generated content
+      if (product) {
+        // First save the content without quality score
+        const { data: savedContent, error: saveError } = await supabase
+          .from('generated_content')
+          .insert({
+            product_id: product.id,
+            content_type,
+            generated_text: generatedText,
+            status: 'pending',
+            seo_keywords: extractSEOKeywords(ragContext.targetProduct),
+            quality_score: 0, // Will be updated after evaluation
+            metadata: {
+              rag_context_used: true,
+              similar_products_count: ragContext.similarProducts.length,
+              category_products_count: ragContext.categoryProducts.length,
+              brand_products_count: ragContext.brandProducts.length,
+              custom_prompt: custom_prompt
+            }
+          })
+          .select()
+          .single();
+
+        if (saveError) {
+          console.error('Error saving content:', saveError);
+        } else if (savedContent) {
+          // Now evaluate the quality and update the record
+          try {
+            console.log('🔍 Evaluating content quality...');
+            
+            // Convert to the format expected by the evaluation service
+            const contentForEvaluation = {
+              id: savedContent.id,
+              product_id: savedContent.product_id,
+              content_type: savedContent.content_type,
+              generated_text: savedContent.generated_text,
+              edited_text: null,
+              seo_keywords: savedContent.seo_keywords || []
+            };
+
+            // Convert product format
+            const productForEvaluation = {
+              id: product.id,
               sku: ragContext.targetProduct.sku,
               name: ragContext.targetProduct.name,
               brand: ragContext.targetProduct.brandName,
               category: ragContext.targetProduct.primary_category || ragContext.targetProduct.breadcrumbs_text,
-              price: ragContext.targetProduct.salePrice ? parseFloat(ragContext.targetProduct.salePrice) : null,
-              description: ragContext.targetProduct.description
-            })
-            .select()
-            .single();
+              attributes: {
+                color: ragContext.targetProduct.color,
+                material: ragContext.targetProduct.material,
+                style: ragContext.targetProduct.style,
+                size: ragContext.targetProduct.size,
+                use_case: ragContext.targetProduct.specific_uses_for_product
+              },
+              additional_text: ragContext.targetProduct.features_text || ragContext.targetProduct.description
+            };
 
-          if (createError) {
-            console.error('Error creating product:', createError);
-          } else {
-            product = newProduct;
-          }
-        }
+            // Run quality evaluation
+            const evaluationReport = await qualityEvaluationService.evaluateContent(
+              contentForEvaluation as any,
+              productForEvaluation as any,
+              savedContent.seo_keywords
+            );
 
-        // Save generated content
-        if (product) {
-          // First save the content without quality score
-          const { data: savedContent, error: saveError } = await supabase
-            .from('generated_content')
-            .insert({
-              product_id: product.id,
-              content_type,
-              generated_text: generatedText,
-              status: 'pending',
-              seo_keywords: extractSEOKeywords(ragContext.targetProduct),
-              quality_score: 0, // Will be updated after evaluation
-              metadata: {
-                rag_context_used: true,
-                similar_products_count: ragContext.similarProducts.length,
-                category_products_count: ragContext.categoryProducts.length,
-                brand_products_count: ragContext.brandProducts.length,
-                custom_prompt: custom_prompt
-              }
-            })
-            .select()
-            .single();
+            // Update the content with quality score and breakdown
+            const { error: updateError } = await supabase
+              .from('generated_content')
+              .update({
+                quality_score: evaluationReport.score.overall / 10, // Convert to 0-1 scale
+                metadata: {
+                  ...savedContent.metadata,
+                  score_breakdown: evaluationReport.score,
+                  recommendations: evaluationReport.recommendations,
+                  evaluation_timestamp: evaluationReport.evaluation_timestamp
+                }
+              })
+              .eq('id', savedContent.id);
 
-          if (saveError) {
-            console.error('Error saving content:', saveError);
-          } else if (savedContent) {
-            // Now evaluate the quality and update the record
-            try {
-              console.log('🔍 Evaluating content quality...');
-              
-              // Convert to the format expected by the evaluation service
-              const contentForEvaluation = {
-                id: savedContent.id,
-                product_id: savedContent.product_id,
-                content_type: savedContent.content_type,
-                generated_text: savedContent.generated_text,
-                edited_text: null,
-                seo_keywords: savedContent.seo_keywords || []
-              };
-
-              // Convert product format
-              const productForEvaluation = {
-                id: product.id,
-                sku: ragContext.targetProduct.sku,
-                name: ragContext.targetProduct.name,
-                brand: ragContext.targetProduct.brandName,
-                category: ragContext.targetProduct.primary_category || ragContext.targetProduct.breadcrumbs_text,
-                attributes: {
-                  color: ragContext.targetProduct.color,
-                  material: ragContext.targetProduct.material,
-                  style: ragContext.targetProduct.style,
-                  size: ragContext.targetProduct.size,
-                  use_case: ragContext.targetProduct.specific_uses_for_product
-                },
-                additional_text: ragContext.targetProduct.features_text || ragContext.targetProduct.description
-              };
-
-              // Run quality evaluation
-              const evaluationReport = await qualityEvaluationService.evaluateContent(
-                contentForEvaluation as any,
-                productForEvaluation as any,
-                savedContent.seo_keywords
-              );
-
-              // Update the content with quality score and breakdown
-              const { error: updateError } = await supabase
-                .from('generated_content')
-                .update({
-                  quality_score: evaluationReport.score.overall / 10, // Convert to 0-1 scale
-                  metadata: {
-                    ...savedContent.metadata,
-                    score_breakdown: evaluationReport.score,
-                    recommendations: evaluationReport.recommendations,
-                    evaluation_timestamp: evaluationReport.evaluation_timestamp
-                  }
-                })
-                .eq('id', savedContent.id);
-
-              if (updateError) {
-                console.error('Error updating quality score:', updateError);
-              } else {
-                console.log(`✅ Quality evaluation complete: ${Math.round(evaluationReport.score.overall)}/10 (${evaluationReport.score.breakdown.qualityLevel})`);
-              }
-
-            } catch (evaluationError) {
-              console.error('Error during quality evaluation:', evaluationError);
-              // Set a default score if evaluation fails
-              await supabase
-                .from('generated_content')
-                .update({ quality_score: 0.7 })
-                .eq('id', savedContent.id);
+            if (updateError) {
+              console.error('Error updating quality score:', updateError);
+            } else {
+              console.log(`✅ Quality evaluation complete: ${Math.round(evaluationReport.score.overall)}/10 (${evaluationReport.score.breakdown.qualityLevel})`);
             }
+
+          } catch (evaluationError) {
+            console.error('Error during quality evaluation:', evaluationError);
+            // Set a default score if evaluation fails
+            await supabase
+              .from('generated_content')
+              .update({ quality_score: 0.7 })
+              .eq('id', savedContent.id);
           }
         }
-      } catch (supabaseError) {
-        console.error('Supabase error (continuing without database):', supabaseError);
       }
-    } else {
-      console.log('📝 Content generated successfully (Supabase not configured - not saving to database)');
+    } catch (supabaseError) {
+      console.error('Supabase error:', supabaseError);
     }
 
     res.json({

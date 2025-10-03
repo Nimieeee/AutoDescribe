@@ -7,19 +7,12 @@ dotenv.config()
 const supabaseUrl = process.env.SUPABASE_URL
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-// Create supabase client only if environment variables are available
-export const supabase = supabaseUrl && supabaseServiceKey 
-  ? createClient(supabaseUrl, supabaseServiceKey)
-  : null
-
-// Helper function to check if Supabase is available
-export const isSupabaseAvailable = () => {
-  return supabase !== null
+if (!supabaseUrl) {
+  throw new Error('SUPABASE_URL environment variable is required')
 }
 
-// Log Supabase status
-if (supabase) {
-  console.log('✅ Supabase client initialized')
-} else {
-  console.log('⚠️  Supabase not configured - running without database features')
+if (!supabaseServiceKey) {
+  throw new Error('SUPABASE_SERVICE_ROLE_KEY environment variable is required')
 }
+
+export const supabase = createClient(supabaseUrl, supabaseServiceKey)
