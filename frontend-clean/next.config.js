@@ -5,6 +5,10 @@ const nextConfig = {
   images: {
     unoptimized: true
   },
+  // Disable static optimization for pages that need runtime environment variables
+  experimental: {
+    missingSuspenseWithCSRBailout: false,
+  },
   // Ensure proper static file handling
   assetPrefix: '',
   // Disable webpack cache for more reliable builds

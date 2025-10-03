@@ -25,6 +25,18 @@ export default function Dashboard() {
 
   const loadDashboardData = async () => {
     try {
+      // Check if environment is configured
+      if (typeof window !== 'undefined') {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        if (!supabaseUrl || supabaseUrl === 'https://placeholder.supabase.co') {
+          console.log('Supabase not configured, using demo data');
+          setStats({ total: 5, pending: 2, approved: 2, rejected: 1 });
+          setRecentContent([]);
+          setLoading(false);
+          return;
+        }
+      }
+
       // Get stats
       const { data: allContent } = await supabase
         .from('generated_content')
