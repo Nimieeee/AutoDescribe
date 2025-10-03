@@ -5,7 +5,7 @@ const nextConfig = {
   images: {
     unoptimized: true
   },
-  // Disable static optimization for pages that need runtime environment variables
+  // Disable features not compatible with static export
   experimental: {
     missingSuspenseWithCSRBailout: false,
   },
