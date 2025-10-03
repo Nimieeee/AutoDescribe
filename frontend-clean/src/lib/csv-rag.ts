@@ -153,7 +153,17 @@ Experience the difference with ${product.name} - your satisfaction is our priori
 
       if (response.ok) {
         const result = await response.json();
-        return result.products || [];
+        // Map API response to frontend Product interface
+        const products = (result.products || []).map((product: any) => ({
+          sku: product.sku,
+          name: product.name,
+          brandName: product.brand || product.brandName || 'Unknown Brand',
+          primary_category: product.category || product.primary_category || 'Unknown Category',
+          breadcrumbs_text: product.category || product.breadcrumbs_text || 'Unknown > Category',
+          salePrice: product.price || product.salePrice,
+          description: product.description || ''
+        }));
+        return products;
       }
     } catch (error) {
       console.log('Backend not available, using fallback search');
