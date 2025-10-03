@@ -37,7 +37,7 @@ export class CSVRAGService {
   private apiUrl: string;
 
   constructor() {
-    this.apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+    this.apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://autodescribe.onrender.com';
   }
 
   /**
