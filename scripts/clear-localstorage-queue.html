@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Clear AutoDescribe Review Queue</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .button {
+            background: #007cba;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+
+        .button:hover {
+            background: #005a87;
+        }
+
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🧹 Clear AutoDescribe Review Queue</h1>
+
+    <div class="info">
+        <strong>Current Status:</strong>
+        <div id="currentStatus">Checking...</div>
+    </div>
+
+    <button class="button" onclick="checkQueue()">🔍 Check Current Queue</button>
+    <button class="button" onclick="clearQueue()">🗑️ Clear Review Queue</button>
+    <button class="button" onclick="clearAllStorage()">🧹 Clear All Local Storage</button>
+
+    <div id="result"></div>
+
+    <script>
+        function checkQueue() {
+            try {
+                const content = localStorage.getItem('autodescribe_content');
+                const items = content ? JSON.parse(content) : [];
+                const pendingItems = items.filter(item => item.status === 'pending');
+
+                document.getElementById('currentStatus').innerHTML = `
+                    <strong>Total Items:</strong> ${items.length}<br>
+                    <strong>Pending Items:</strong> ${pendingItems.length}<br>
+                    <strong>Storage Key:</strong> autodescribe_content
+                `;
+
+                if (items.length > 0) {
+                    let details = '<h3>📋 Content Details:</h3><ul>';
+                    items.slice(0, 5).forEach((item, index) => {
+                        details += `<li>${item.content_type} - ${item.product_sku} (${item.status})</li>`;
+                    });
+                    if (items.length > 5) {
+                        details += `<li>... and ${items.length - 5} more items</li>`;
+                    }
+                    details += '</ul>';
+
+                    document.getElementById('result').innerHTML = `
+                        <div class="info">${details}</div>
+                    `;
+                } else {
+                    document.getElementById('result').innerHTML = `
+                        <div class="success">✅ No content found in localStorage</div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px;">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function clearQueue() {
+            try {
+                const content = localStorage.getItem('autodescribe_content');
+                const itemCount = content ? JSON.parse(content).length : 0;
+
+                localStorage.removeItem('autodescribe_content');
+
+                document.getElementById('result').innerHTML = `
+                    <div class="success">
+                        ✅ Successfully cleared ${itemCount} items from review queue!<br>
+                        🔄 Please refresh your AutoDescribe application to see the changes.
+                    </div>
+                `;
+
+                // Update status
+                setTimeout(checkQueue, 100);
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px;">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function clearAllStorage() {
+            try {
+                const keyCount = localStorage.length;
+                localStorage.clear();
+
+                document.getElementById('result').innerHTML = `
+                    <div class="success">
+                        ✅ Cleared all localStorage (${keyCount} keys removed)<br>
+                        🔄 Please refresh your AutoDescribe application.
+                    </div>
+                `;
+
+                setTimeout(checkQueue, 100);
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px;">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Check on page load
+        window.onload = checkQueue;
+    </script>
+</body>
+
+</html>

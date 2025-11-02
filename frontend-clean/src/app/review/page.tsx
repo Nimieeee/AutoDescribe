@@ -3,13 +3,11 @@
 import { useEffect, useState } from 'react'
 import { supabase, GeneratedContent } from '@/lib/supabase'
 import { 
-  Lock, RefreshCw, CheckCircle, XCircle, Clock, 
+  RefreshCw, CheckCircle, XCircle, Clock, 
   BarChart3, AlertTriangle, Target, Trophy, Sparkles, FileText, AlertCircle
 } from 'lucide-react'
 
 export default function ReviewPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [password, setPassword] = useState('')
   const [content, setContent] = useState<GeneratedContent[]>([])
   const [selectedItem, setSelectedItem] = useState<GeneratedContent | null>(null)
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending')
@@ -19,31 +17,8 @@ export default function ReviewPage() {
   const [showScoreBreakdown, setShowScoreBreakdown] = useState(false)
 
   useEffect(() => {
-    // Check if already authenticated
-    const savedAuth = localStorage.getItem('review-auth')
-    if (savedAuth === 'atdb-465@') {
-      setIsAuthenticated(true)
-      loadContent()
-    } else {
-      setLoading(false)
-    }
+    loadContent()
   }, [])
-
-  const handleLogin = () => {
-    if (password === 'atdb-465@') {
-      setIsAuthenticated(true)
-      localStorage.setItem('review-auth', password)
-      loadContent()
-    } else {
-      alert('Incorrect password')
-    }
-  }
-
-  const handleLogout = () => {
-    setIsAuthenticated(false)
-    localStorage.removeItem('review-auth')
-    setPassword('')
-  }
 
   const loadContent = async () => {
     try {
@@ -162,52 +137,6 @@ export default function ReviewPage() {
     }
   }
 
-  // Login screen
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="max-w-md w-full space-y-8">
-          <div>
-            <div className="flex items-center justify-center">
-              <Lock className="w-8 h-8 text-blue-600 mr-3" />
-              <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                Content Review Access
-              </h2>
-            </div>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              Enter password to access the review dashboard
-            </p>
-          </div>
-          <div className="mt-8 space-y-6">
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Enter password"
-              />
-            </div>
-            <div>
-              <button
-                onClick={handleLogin}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                🔓 Access Review Dashboard
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -224,22 +153,13 @@ export default function ReviewPage() {
             <h1 className="text-3xl font-bold text-gray-900">AutoDescribe Review Dashboard</h1>
             <p className="text-gray-600 mt-2">Review, edit, and approve AI-generated descriptions</p>
           </div>
-          <div className="flex space-x-3">
-            <button
-              onClick={loadContent}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              <RefreshCw className="w-4 h-4 mr-2 inline" />
-              Refresh
-            </button>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
-            >
-              <Lock className="w-4 h-4 mr-2 inline" />
-              Logout
-            </button>
-          </div>
+          <button
+            onClick={loadContent}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            <RefreshCw className="w-4 h-4 mr-2 inline" />
+            Refresh
+          </button>
         </div>
       </div>
 

@@ -143,6 +143,11 @@ Experience the difference with ${product.name} - your satisfaction is our priori
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Search Products (CSV Data)
               </label>
+              <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="text-xs text-blue-700">
+                  💡 <span className="font-medium">First-time search tip:</span> Initial searches may take a moment as we index your data. Subsequent searches will be much faster!
+                </p>
+              </div>
               <SearchSuggestions
                 query={searchQuery}
                 onSelect={(suggestion) => {
@@ -154,38 +159,20 @@ Experience the difference with ${product.name} - your satisfaction is our priori
                       value: suggestion.value
                     })
                   } else {
-                    // For category/brand selections, perform search
+                    // For category/brand selections, just update the search query
+                    // The SearchSuggestions component will handle showing results
                     setSearchQuery(suggestion.value)
-                    handleSearch(suggestion.value)
+                    trackUserInteraction('select', 'search_suggestion', {
+                      type: suggestion.type,
+                      value: suggestion.value
+                    })
                   }
                 }}
                 onSearch={(query) => {
                   setSearchQuery(query)
-                  if (query.trim()) {
-                    handleSearch(query)
-                  }
                 }}
                 placeholder="Search by product name, SKU, brand, or category..."
-                className="mb-4"
               />
-              
-              {/* Search Results (for category/brand searches) */}
-              {searchResults.length > 0 && (
-                <div className="mt-2 max-h-40 overflow-y-auto border border-gray-200 rounded-md">
-                  {searchResults.map((product, index) => (
-                    <div
-                      key={index}
-                      onClick={() => selectProduct(product)}
-                      className="p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                    >
-                      <div className="font-medium text-sm">{product.name}</div>
-                      <div className="text-xs text-gray-500">
-                        SKU: {product.sku} | Brand: {product.brandName} | Category: {product.primary_category}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
 
             <div>
