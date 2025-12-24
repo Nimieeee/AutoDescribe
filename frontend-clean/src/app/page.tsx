@@ -244,10 +244,41 @@ Experience the difference with ${product.name} - your satisfaction is our priori
 
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-2">Generated Text</h3>
-                <div className="p-4 bg-gray-50 rounded-md border">
-                  <div className="text-gray-900 whitespace-pre-wrap text-sm leading-relaxed">
-                    {result.generated_text}
-                  </div>
+                <div className="p-4 bg-gray-50 rounded-md border space-y-4">
+                  {result.generated_text?.split('\n\n').map((paragraph: string, idx: number) => {
+                    // Check if it's a heading (contains colon at end or specific patterns)
+                    const isHeading = paragraph.includes('Why') || paragraph.includes('Bottom Line') || paragraph.includes(':') && paragraph.length < 80;
+                    const isBullet = paragraph.trim().startsWith('•') || paragraph.trim().startsWith('-') || paragraph.trim().startsWith('⭐') || paragraph.trim().startsWith('🔑') || paragraph.trim().startsWith('🛠️') || paragraph.trim().startsWith('🎯') || paragraph.trim().startsWith('💰') || paragraph.trim().startsWith('👉');
+
+                    if (isBullet || paragraph.includes('\n•') || paragraph.includes('\n-')) {
+                      // Render as bullet list
+                      const lines = paragraph.split('\n').filter((l: string) => l.trim());
+                      return (
+                        <ul key={idx} className="space-y-2 pl-2">
+                          {lines.map((line: string, lineIdx: number) => (
+                            <li key={lineIdx} className="text-gray-800 text-sm leading-relaxed flex items-start gap-2">
+                              {!line.trim().match(/^[•\-⭐🔑🛠️🎯💰👉]/) && <span className="text-blue-500">•</span>}
+                              <span>{line.replace(/^[•\-]\s*/, '')}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      );
+                    }
+
+                    if (isHeading) {
+                      return (
+                        <h4 key={idx} className="font-semibold text-gray-900 text-base border-b pb-2 mt-4">
+                          {paragraph}
+                        </h4>
+                      );
+                    }
+
+                    return (
+                      <p key={idx} className="text-gray-800 text-sm leading-relaxed">
+                        {paragraph}
+                      </p>
+                    );
+                  })}
                 </div>
               </div>
 
