@@ -25,7 +25,7 @@ class ClientKPITracker {
    */
   private getOrCreateSessionId(): string {
     if (typeof window === 'undefined') return 'ssr-session';
-    
+
     let sessionId = localStorage.getItem('kpi-session-id');
     if (!sessionId) {
       sessionId = `client_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -46,7 +46,7 @@ class ClientKPITracker {
     // Track clicks on important elements
     document.addEventListener('click', (event) => {
       const target = event.target as HTMLElement;
-      
+
       // Track button clicks
       if (target.tagName === 'BUTTON' || target.closest('button')) {
         const button = target.tagName === 'BUTTON' ? target : target.closest('button');
@@ -56,7 +56,7 @@ class ClientKPITracker {
           button_class: button?.className
         });
       }
-      
+
       // Track link clicks
       if (target.tagName === 'A' || target.closest('a')) {
         const link = target.tagName === 'A' ? target : target.closest('a');
@@ -66,7 +66,7 @@ class ClientKPITracker {
           link_id: link?.id
         });
       }
-      
+
       // Track form submissions
       if ((target as HTMLInputElement).type === 'submit') {
         const form = target.closest('form');
@@ -123,7 +123,7 @@ class ClientKPITracker {
    */
   trackPageView() {
     if (typeof window === 'undefined') return;
-    
+
     this.trackEvent({
       type: 'page_view',
       timestamp: new Date(),
@@ -144,7 +144,7 @@ class ClientKPITracker {
    */
   trackUserInteraction(action: string, element: string, additionalData: Record<string, any> = {}) {
     if (typeof window === 'undefined') return;
-    
+
     this.trackEvent({
       type: 'user_interaction',
       timestamp: new Date(),
@@ -198,9 +198,9 @@ class ClientKPITracker {
    */
   trackEvent(event: ClientKPIEvent) {
     if (!this.isTracking) return;
-    
+
     this.eventQueue.push(event);
-    
+
     // Auto-flush when queue gets large
     if (this.eventQueue.length >= 10) {
       this.flushEvents();
@@ -212,13 +212,13 @@ class ClientKPITracker {
    */
   async flushEvents() {
     if (this.eventQueue.length === 0) return;
-    
+
     const eventsToSend = [...this.eventQueue];
     this.eventQueue = [];
-    
+
     try {
-      // Send events to backend
-      await fetch('/api/kpi/client-events', {
+      // Send events to backend via proxy
+      await fetch('/api/proxy/kpi/client-events', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -226,7 +226,7 @@ class ClientKPITracker {
         },
         body: JSON.stringify({ events: eventsToSend })
       });
-      
+
       console.log(`📊 Sent ${eventsToSend.length} client KPI events`);
     } catch (error) {
       console.error('Error sending KPI events:', error);
@@ -273,14 +273,14 @@ export function getKPITracker(): ClientKPITracker {
 // React hook for KPI tracking
 export function useKPITracking() {
   const tracker = getKPITracker();
-  
+
   return {
     trackPageView: () => tracker.trackPageView(),
-    trackUserInteraction: (action: string, element: string, data?: Record<string, any>) => 
+    trackUserInteraction: (action: string, element: string, data?: Record<string, any>) =>
       tracker.trackUserInteraction(action, element, data),
-    trackSearch: (query: string, resultsCount: number, responseTime: number) => 
+    trackSearch: (query: string, resultsCount: number, responseTime: number) =>
       tracker.trackSearch(query, resultsCount, responseTime),
-    trackGenerationRequest: (sku: string, contentType: string) => 
+    trackGenerationRequest: (sku: string, contentType: string) =>
       tracker.trackGenerationRequest(sku, contentType),
     flushEvents: () => tracker.flushEvents(),
     setTracking: (enabled: boolean) => tracker.setTracking(enabled),
