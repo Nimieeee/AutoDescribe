@@ -37,7 +37,7 @@ export class CSVRAGService {
   private apiUrl: string;
 
   constructor() {
-    this.apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '/api/proxy';
+    this.apiUrl = '/api/proxy';
   }
 
   /**
