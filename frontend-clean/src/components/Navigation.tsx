@@ -8,8 +8,7 @@ export default function Navigation() {
   const pathname = usePathname()
 
   const links = [
-    { href: '/', label: 'Dashboard', icon: BarChart3 },
-    { href: '/generate', label: 'Generate', icon: Sparkles },
+    { href: '/', label: 'Home', icon: Sparkles },
     { href: '/review', label: 'Review', icon: ClipboardList },
     { href: '/kpis', label: 'KPIs', icon: TrendingUp },
     { href: '/success-criteria', label: 'Success Criteria', icon: Target },
@@ -28,11 +27,10 @@ export default function Navigation() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
-                    pathname === link.href
+                  className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${pathname === link.href
                       ? 'border-b-2 border-blue-500 text-gray-900'
                       : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                    }`}
                 >
                   <link.icon className="w-4 h-4 mr-2" />
                   {link.label}

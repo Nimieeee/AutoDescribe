@@ -1,216 +1,310 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { supabase, GeneratedContent } from '@/lib/supabase'
-import Link from 'next/link'
+import { useState, useEffect } from 'react'
+import { supabase, Product } from '@/lib/supabase'
+import { csvRAGService } from '@/lib/csv-rag'
 import { useKPITracking } from '@/lib/kpi-client'
-import { BarChart3, CheckCircle, XCircle, Sparkles } from 'lucide-react'
+import SearchSuggestions from '@/components/SearchSuggestions'
 
-export default function Dashboard() {
-  const [stats, setStats] = useState({
-    total: 0,
-    pending: 0,
-    approved: 0,
-    rejected: 0
-  })
-  const [recentContent, setRecentContent] = useState<GeneratedContent[]>([])
-  const [loading, setLoading] = useState(true)
+export default function GeneratePage() {
+  const [productSku, setProductSku] = useState('')
+  const [contentType, setContentType] = useState('description')
+  const [customPrompt, setCustomPrompt] = useState('')
+  const [generating, setGenerating] = useState(false)
+  const [result, setResult] = useState<any>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [searching, setSearching] = useState(false)
   
-  const { trackPageView, trackUserInteraction } = useKPITracking()
+  const { trackPageView, trackSearch, trackGenerationRequest, trackUserInteraction } = useKPITracking()
 
   useEffect(() => {
-    // Track page view
     trackPageView()
-    loadDashboardData()
   }, [])
 
-  const loadDashboardData = async () => {
+  const handleSearch = async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults([])
+      return
+    }
+
+    setSearching(true)
+    const startTime = Date.now()
+    
     try {
-      // Check if environment is configured
-      if (typeof window !== 'undefined') {
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        if (!supabaseUrl || supabaseUrl === 'https://placeholder.supabase.co') {
-          console.log('Supabase not configured, using demo data');
-          setStats({ total: 5, pending: 2, approved: 2, rejected: 1 });
-          setRecentContent([]);
-          setLoading(false);
-          return;
-        }
+      const products = await csvRAGService.searchProducts(query, 10)
+      setSearchResults(products)
+      
+      // Track search event
+      const responseTime = Date.now() - startTime
+      trackSearch(query, products.length, responseTime)
+    } catch (error) {
+      console.error('Search error:', error)
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  const selectProduct = (product: any) => {
+    setProductSku(product.sku)
+    setSearchResults([])
+    setSearchQuery('')
+    
+    // Track product selection
+    trackUserInteraction('select', 'product_search_result', {
+      sku: product.sku,
+      product_name: product.name
+    })
+  }
+
+  const handleGenerate = async () => {
+    if (!productSku.trim()) {
+      setError('Please enter a product SKU')
+      return
+    }
+
+    setGenerating(true)
+    setError(null)
+    setResult(null)
+    
+    // Track generation request
+    trackGenerationRequest(productSku, contentType)
+
+    try {
+      // Use CSV RAG service to generate content
+      const ragResult = await csvRAGService.generateContentWithRAG(
+        productSku,
+        contentType,
+        customPrompt
+      )
+
+      if (!ragResult.success) {
+        throw new Error(ragResult.error || 'Failed to generate content')
       }
 
-      // Get stats
-      const { data: allContent } = await supabase
-        .from('generated_content')
-        .select('status')
-
-      if (allContent) {
-        const stats = {
-          total: allContent.length,
-          pending: allContent.filter(c => c.status === 'pending').length,
-          approved: allContent.filter(c => c.status === 'approved').length,
-          rejected: allContent.filter(c => c.status === 'rejected').length,
-        }
-        setStats(stats)
-      }
-
-      // Get recent content
-      const { data: recent } = await supabase
+      // Get the saved content from database
+      const { data: savedContent } = await supabase
         .from('generated_content')
         .select(`
           *,
           products (sku, name, brand)
         `)
+        .eq('generated_text', ragResult.content)
         .order('created_at', { ascending: false })
-        .limit(5)
+        .limit(1)
+        .single()
 
-      if (recent) {
-        setRecentContent(recent)
-      }
-    } catch (error) {
-      console.error('Error loading dashboard:', error)
+      setResult({
+        ...savedContent,
+        rag_context: ragResult.ragContext
+      })
+    } catch (err: any) {
+      setError(err.message)
     } finally {
-      setLoading(false)
+      setGenerating(false)
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    )
+  const generateMockContent = (product: Product, type: string, prompt?: string) => {
+    const baseContent = `Discover the ${product.name} - a premium ${product.category?.toLowerCase() || 'product'} from ${product.brand}. 
+
+This exceptional product combines quality craftsmanship with innovative design, delivering outstanding performance and value. Perfect for customers who demand excellence and reliability.
+
+Key features:
+• Premium materials and construction
+• Innovative design for optimal performance  
+• Excellent value for money
+• Trusted brand quality
+• Customer satisfaction guaranteed
+
+${prompt ? `\nCustom requirements: ${prompt}` : ''}
+
+Experience the difference with ${product.name} - your satisfaction is our priority.`
+
+    return baseContent
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">AutoDescribe Dashboard</h1>
-        <p className="text-gray-600 mt-2">AI-powered product description generation and review</p>
+        <h1 className="text-3xl font-bold text-gray-900">Generate Descriptions</h1>
+        <p className="text-gray-600 mt-2">Create AI-powered product descriptions with AutoDescribe</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Input Form */}
         <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <BarChart3 className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Content</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-yellow-100 rounded-lg">
-              <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Pending Review</p>
-              <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-green-100 rounded-lg">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Approved</p>
-              <p className="text-2xl font-bold text-green-600">{stats.approved}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-red-100 rounded-lg">
-              <XCircle className="w-6 h-6 text-red-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Rejected</p>
-              <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <Link 
-          href="/generate" 
-          className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg p-6 block transition-colors"
-          onClick={() => trackUserInteraction('click', 'generate_content_card', { source: 'dashboard' })}
-        >
-          <div className="flex items-center">
-            <div className="p-3 bg-blue-500 rounded-lg mr-4">
-              <Sparkles className="w-8 h-8 text-white" />
-            </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Content Generation</h2>
+          
+          <div className="space-y-4">
+            {/* Product Search with Suggestions */}
             <div>
-              <h3 className="text-xl font-semibold">Generate Content</h3>
-              <p className="text-blue-100">Create new product descriptions with AI</p>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Search Products (CSV Data)
+              </label>
+              <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="text-xs text-blue-700">
+                  💡 <span className="font-medium">First-time search tip:</span> Initial searches may take a moment as we index your data. Subsequent searches will be much faster!
+                </p>
+              </div>
+              <SearchSuggestions
+                query={searchQuery}
+                onSelect={(suggestion) => {
+                  if (suggestion.type === 'product') {
+                    setProductSku(suggestion.value)
+                    setSearchQuery('')
+                    trackUserInteraction('select', 'search_suggestion', {
+                      type: suggestion.type,
+                      value: suggestion.value
+                    })
+                  } else {
+                    // For category/brand selections, just update the search query
+                    // The SearchSuggestions component will handle showing results
+                    setSearchQuery(suggestion.value)
+                    trackUserInteraction('select', 'search_suggestion', {
+                      type: suggestion.type,
+                      value: suggestion.value
+                    })
+                  }
+                }}
+                onSearch={(query) => {
+                  setSearchQuery(query)
+                }}
+                placeholder="Search by product name, SKU, brand, or category..."
+              />
             </div>
-          </div>
-        </Link>
 
-        <Link 
-          href="/review" 
-          className="bg-green-600 hover:bg-green-700 text-white rounded-lg p-6 block transition-colors"
-          onClick={() => trackUserInteraction('click', 'review_content_card', { source: 'dashboard' })}
-        >
-          <div className="flex items-center">
-            <div className="text-3xl mr-4">📋</div>
             <div>
-              <h3 className="text-xl font-semibold">Review Content</h3>
-              <p className="text-green-100">Review and approve generated content</p>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Product SKU
+              </label>
+              <input
+                type="text"
+                value={productSku}
+                onChange={(e) => setProductSku(e.target.value)}
+                placeholder="Enter SKU or search above (e.g., B00GS8W3T4)"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
-          </div>
-        </Link>
-      </div>
 
-      {/* Recent Content */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Recent Content</h2>
-        </div>
-        <div className="divide-y divide-gray-200">
-          {recentContent.length === 0 ? (
-            <div className="px-6 py-8 text-center text-gray-500">
-              No content generated yet. <Link href="/generate" className="text-blue-600 hover:underline">Generate your first content</Link>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Content Type
+              </label>
+              <select
+                value={contentType}
+                onChange={(e) => setContentType(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="description">Product Description</option>
+                <option value="features">Feature List</option>
+                <option value="benefits">Benefits Summary</option>
+                <option value="seo">SEO Content</option>
+              </select>
             </div>
-          ) : (
-            recentContent.map((content) => (
-              <div key={content.id} className="px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-900">
-                      {content.products?.name || 'Unknown Product'}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      SKU: {content.products?.sku} • {content.content_type}
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      content.status === 'approved' ? 'bg-green-100 text-green-800' :
-                      content.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {content.status}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {new Date(content.created_at).toLocaleDateString()}
-                    </span>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Custom Instructions (Optional)
+              </label>
+              <textarea
+                value={customPrompt}
+                onChange={(e) => setCustomPrompt(e.target.value)}
+                placeholder="Add specific requirements or focus areas..."
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <button
+              onClick={handleGenerate}
+              disabled={generating}
+              className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
+            >
+              {generating ? 'Generating with CSV Context...' : 'Generate Content with RAG'}
+            </button>
+
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Output */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Generated Content</h2>
+          
+          {result ? (
+            <div className="space-y-4">
+              <div className="p-4 bg-green-50 border border-green-200 rounded-md">
+                <p className="text-green-800 text-sm font-medium">
+                  ✅ Content generated successfully and saved to review queue!
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-medium text-gray-700 mb-2">Product</h3>
+                <p className="text-sm text-gray-600">
+                  {result.products?.name} (SKU: {result.products?.sku})
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-medium text-gray-700 mb-2">Generated Text</h3>
+                <div className="p-4 bg-gray-50 rounded-md border">
+                  <div className="text-gray-900 whitespace-pre-wrap text-sm leading-relaxed">
+                    {result.generated_text}
                   </div>
                 </div>
               </div>
-            ))
+
+              {result.seo_keywords && result.seo_keywords.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">SEO Keywords</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {result.seo_keywords.map((keyword: string, index: number) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                      >
+                        {keyword}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* RAG Context Info */}
+              {result.rag_context && (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                  <h3 className="text-sm font-medium text-green-800 mb-2">🧠 CSV RAG Context Used</h3>
+                  <div className="text-xs text-green-700 space-y-1">
+                    <p>✅ Target Product: {result.rag_context.targetProduct.name}</p>
+                    <p>📊 Similar Products: {result.rag_context.similarProducts.length} found</p>
+                    <p>🏷️ Category Products: {result.rag_context.categoryProducts.length} found</p>
+                    <p>🔍 Brand Products: {result.rag_context.brandProducts.length} found</p>
+                    <p>📝 Context generated from your CSV product database</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-4 border-t">
+                <a
+                  href="/review"
+                  className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700"
+                >
+                  📋 Go to Review Queue
+                </a>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="text-gray-400 text-6xl mb-4">✨</div>
+              <p className="text-gray-500">Generated content will appear here</p>
+            </div>
           )}
         </div>
       </div>
