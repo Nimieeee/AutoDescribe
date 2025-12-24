@@ -425,23 +425,23 @@ Experience the difference with ${product.name} - your satisfaction is our priori
                         switch (section.type) {
                           case 'intro':
                             return (
-                              <div key={idx} className="text-xl md:text-2xl font-medium text-gray-800 dark:text-gray-100 leading-relaxed border-l-4 border-blue-500 pl-6 py-2 mb-8">
+                              <p key={idx} className="text-lg text-gray-800 dark:text-gray-200 leading-relaxed mb-6">
                                 {parseMarkdown(section.content)}
-                              </div>
+                              </p>
                             );
 
                           case 'feature-section':
                             return (
-                              <div key={idx} className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 rounded-2xl p-6 md:p-8 border border-amber-100 dark:border-amber-800/30 mb-8 last:mb-0">
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
-                                  <span className="text-2xl">✨</span>
+                              <div key={idx} className="mb-6">
+                                <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                  <span>✨</span>
                                   {parseMarkdown(section.content)}
                                 </h3>
-                                <div className="space-y-4">
+                                <div className="space-y-3 pl-1">
                                   {section.bullets?.map((bullet, bIdx) => (
-                                    <div key={bIdx} className="flex gap-4 items-start">
-                                      <span className="flex-shrink-0 text-xl mt-0.5">{bullet.emoji || '•'}</span>
-                                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-base">{parseMarkdown(bullet.text)}</p>
+                                    <div key={bIdx} className="flex gap-3 items-start">
+                                      <span className="flex-shrink-0 mt-0.5">{bullet.emoji || '•'}</span>
+                                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{parseMarkdown(bullet.text)}</p>
                                     </div>
                                   ))}
                                 </div>
@@ -450,12 +450,12 @@ Experience the difference with ${product.name} - your satisfaction is our priori
 
                           case 'bottom-line':
                             return (
-                              <div key={idx} className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-2xl p-6 md:p-8 border border-blue-100 dark:border-blue-800/30 mb-8 last:mb-0">
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-3">
-                                  <span className="text-2xl">🏁</span>
+                              <div key={idx} className="mb-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                <h3 className="text-base font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                  <span>🏁</span>
                                   {parseMarkdown(section.content)}
                                 </h3>
-                                <div className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg space-y-3">
+                                <div className="text-gray-700 dark:text-gray-300 leading-relaxed space-y-2">
                                   {section.bullets?.map((item, bIdx) => (
                                     <p key={bIdx}>{parseMarkdown(item.text)}</p>
                                   ))}
@@ -465,24 +465,26 @@ Experience the difference with ${product.name} - your satisfaction is our priori
 
                           case 'bullet':
                             return (
-                              <div key={idx} className="flex gap-4 items-start pl-2 mb-4">
-                                <span className="flex-shrink-0 text-xl mt-0.5">{section.emoji || '•'}</span>
-                                <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-base">{parseMarkdown(section.content)}</p>
+                              <div key={idx} className="flex gap-3 items-start mb-3">
+                                <span className="flex-shrink-0 mt-0.5">{section.emoji || '•'}</span>
+                                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{parseMarkdown(section.content)}</p>
                               </div>
                             );
 
                           case 'cta':
                             return (
-                              <div key={idx} className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl p-5 font-semibold text-lg flex items-center gap-3 shadow-lg shadow-green-500/20 mb-8">
-                                <span className="text-2xl">👉</span>
-                                {parseMarkdown(section.content)}
+                              <div key={idx} className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                <p className="text-gray-900 dark:text-white font-semibold flex items-center gap-2">
+                                  <span>👉</span>
+                                  {parseMarkdown(section.content)}
+                                </p>
                               </div>
                             );
 
                           case 'paragraph':
                           default:
                             return (
-                              <p key={idx} className="text-gray-700 dark:text-gray-300 text-lg leading-relaxed mb-6 last:mb-0">
+                              <p key={idx} className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
                                 {parseMarkdown(section.content)}
                               </p>
                             );
