@@ -41,7 +41,7 @@ export default function SearchSuggestions({
         setSuggestions([])
         setIsOpen(false)
       }
-    }, 300)
+    }, 100)
 
     return () => clearTimeout(timeoutId)
   }, [query])
@@ -51,7 +51,7 @@ export default function SearchSuggestions({
     try {
       // Get backend URL from environment
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
-      
+
       // Fetch suggestions from multiple endpoints
       const [productsRes, categoriesRes, brandsRes] = await Promise.all([
         fetch(`${backendUrl}/api/search-products?q=${encodeURIComponent(searchQuery)}&limit=5`),
@@ -129,7 +129,7 @@ export default function SearchSuggestions({
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault()
-        setSelectedIndex(prev => 
+        setSelectedIndex(prev =>
           prev < suggestions.length - 1 ? prev + 1 : prev
         )
         break
@@ -223,9 +223,8 @@ export default function SearchSuggestions({
           {suggestions.map((suggestion, index) => (
             <div
               key={`${suggestion.type}-${suggestion.value}`}
-              className={`px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0 hover:bg-gray-50 ${
-                index === selectedIndex ? 'bg-blue-50 border-blue-200' : ''
-              }`}
+              className={`px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0 hover:bg-gray-50 ${index === selectedIndex ? 'bg-blue-50 border-blue-200' : ''
+                }`}
               onClick={() => handleSelectSuggestion(suggestion)}
             >
               <div className="flex items-center justify-between">
@@ -249,12 +248,11 @@ export default function SearchSuggestions({
               </div>
             </div>
           ))}
-          
+
           {/* Search all results option */}
           <div
-            className={`px-4 py-3 cursor-pointer hover:bg-gray-50 border-t border-gray-200 ${
-              selectedIndex === suggestions.length ? 'bg-blue-50' : ''
-            }`}
+            className={`px-4 py-3 cursor-pointer hover:bg-gray-50 border-t border-gray-200 ${selectedIndex === suggestions.length ? 'bg-blue-50' : ''
+              }`}
             onClick={() => {
               onSearch(query)
               setIsOpen(false)
