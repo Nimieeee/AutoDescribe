@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase, GeneratedContent } from '@/lib/supabase'
+import { GeneratedContent } from '@/lib/supabase'
 import {
   RefreshCw, CheckCircle, XCircle, Clock,
   BarChart3, AlertTriangle, Target, Trophy, Sparkles, FileText, AlertCircle
@@ -22,19 +22,14 @@ export default function ReviewPage() {
 
   const loadContent = async () => {
     try {
-      const { data, error } = await supabase
-        .from('generated_content')
-        .select(`
-          *,
-          products (sku, name, brand, category)
-        `)
-        .order('created_at', { ascending: false })
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
+      const response = await fetch(`${backendUrl}/api/content`)
 
-      if (error) {
-        console.error('Error loading content:', error)
-        return
+      if (!response.ok) {
+        throw new Error('Failed to fetch content')
       }
 
+      const data = await response.json()
       setContent(data || [])
     } catch (error) {
       console.error('Error loading content:', error)
@@ -45,17 +40,17 @@ export default function ReviewPage() {
 
   const updateStatus = async (id: string, status: 'approved' | 'rejected') => {
     try {
-      const { error } = await supabase
-        .from('generated_content')
-        .update({
-          status,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', id)
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
+      const response = await fetch(`${backendUrl}/api/content/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status })
+      })
 
-      if (error) {
-        console.error('Error updating status:', error)
-        return
+      if (!response.ok) {
+        throw new Error('Failed to update status')
       }
 
       // Update local state
@@ -83,18 +78,18 @@ export default function ReviewPage() {
     if (!selectedItem) return
 
     try {
-      const { error } = await supabase
-        .from('generated_content')
-        .update({
-          edited_text: editedText,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', selectedItem.id)
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
+      const response = await fetch(`${backendUrl}/api/content/${selectedItem.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ edited_text: editedText })
+      })
 
-      if (error) {
-        console.error('Error saving edit:', error)
-        alert('Error saving changes: ' + error.message)
-        return
+      if (!response.ok) {
+        const errData = await response.json()
+        throw new Error(errData.error || 'Failed to save edit')
       }
 
       // Update local state
@@ -106,9 +101,9 @@ export default function ReviewPage() {
 
       // Show success message
       alert('Changes saved successfully!')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving edit:', error)
-      alert('Error saving changes. Please try again.')
+      alert('Error saving changes: ' + error.message)
     }
   }
 

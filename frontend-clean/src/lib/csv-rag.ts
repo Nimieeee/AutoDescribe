@@ -51,6 +51,7 @@ export class CSVRAGService {
     success: boolean;
     content?: string;
     ragContext?: RAGContext;
+    savedContent?: any;
     error?: string;
   }> {
     try {
@@ -73,6 +74,7 @@ export class CSVRAGService {
           success: true,
           content: result.generated_text,
           ragContext: result.rag_context,
+          savedContent: result.saved_content
         };
       }
     } catch (error) {
@@ -87,8 +89,8 @@ export class CSVRAGService {
    * Fallback content generation when backend is not available
    */
   private async generateFallbackContent(
-    sku: string, 
-    contentType: string, 
+    sku: string,
+    contentType: string,
     customPrompt?: string
   ): Promise<{
     success: boolean;
@@ -145,7 +147,7 @@ Experience the difference with ${product.name} - your satisfaction is our priori
       // First try backend API
       const response = await fetch(
         `${this.apiUrl}/api/search-products?q=${encodeURIComponent(query)}&limit=${limit}`,
-        { 
+        {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' }
         }
@@ -187,7 +189,7 @@ Experience the difference with ${product.name} - your satisfaction is our priori
         description: 'Premium wireless headphones with noise cancellation'
       },
       {
-        sku: 'B08N5WRWNW', 
+        sku: 'B08N5WRWNW',
         name: 'Smart Fitness Watch',
         breadcrumbs_text: 'Electronics > Wearables > Fitness',
         brandName: 'FitTech',
@@ -223,7 +225,7 @@ Experience the difference with ${product.name} - your satisfaction is our priori
     // Simple search filter
     const queryLower = query.toLowerCase();
     return demoProducts
-      .filter(product => 
+      .filter(product =>
         product.name.toLowerCase().includes(queryLower) ||
         product.brandName.toLowerCase().includes(queryLower) ||
         product.primary_category?.toLowerCase().includes(queryLower) ||

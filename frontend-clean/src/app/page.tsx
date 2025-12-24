@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase, Product } from '@/lib/supabase'
+import { Product } from '@/lib/supabase'
 import { csvRAGService } from '@/lib/csv-rag'
 import { useKPITracking } from '@/lib/kpi-client'
 import SearchSuggestions from '@/components/SearchSuggestions'
@@ -83,17 +83,8 @@ export default function GeneratePage() {
         throw new Error(ragResult.error || 'Failed to generate content')
       }
 
-      // Get the saved content from database
-      const { data: savedContent } = await supabase
-        .from('generated_content')
-        .select(`
-          *,
-          products (sku, name, brand)
-        `)
-        .eq('generated_text', ragResult.content)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single()
+      // Use content returned from backend (including database record)
+      const savedContent = ragResult.savedContent
 
       setResult({
         ...savedContent,
