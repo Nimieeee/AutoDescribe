@@ -22,7 +22,7 @@ export default function ReviewPage() {
 
   const loadContent = async () => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '/api/proxy'
+      const backendUrl = '/api/proxy'
       const response = await fetch(`${backendUrl}/content`)
 
       if (!response.ok) {
@@ -40,7 +40,7 @@ export default function ReviewPage() {
 
   const updateStatus = async (id: string, status: 'approved' | 'rejected') => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '/api/proxy'
+      const backendUrl = '/api/proxy'
       const response = await fetch(`${backendUrl}/content/${id}`, {
         method: 'PATCH',
         headers: {
@@ -78,7 +78,7 @@ export default function ReviewPage() {
     if (!selectedItem) return
 
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '/api/proxy'
+      const backendUrl = '/api/proxy'
       const response = await fetch(`${backendUrl}/content/${selectedItem.id}`, {
         method: 'PATCH',
         headers: {
