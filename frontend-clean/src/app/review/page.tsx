@@ -176,8 +176,8 @@ export default function ReviewPage() {
                   key={filterOption}
                   onClick={() => setFilter(filterOption)}
                   className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${filter === filterOption
-                      ? 'bg-white text-blue-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
                     }`}
                 >
                   {filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
@@ -329,8 +329,8 @@ export default function ReviewPage() {
                     <div className="flex-1 bg-gray-200 rounded-full h-3">
                       <div
                         className={`h-3 rounded-full ${selectedItem.quality_score >= 0.9 ? 'bg-green-500' :
-                            selectedItem.quality_score >= 0.7 ? 'bg-blue-500' :
-                              selectedItem.quality_score >= 0.4 ? 'bg-yellow-500' : 'bg-red-500'
+                          selectedItem.quality_score >= 0.7 ? 'bg-blue-500' :
+                            selectedItem.quality_score >= 0.4 ? 'bg-yellow-500' : 'bg-red-500'
                           }`}
                         style={{ width: `${selectedItem.quality_score * 100}%` }}
                       ></div>
@@ -404,8 +404,8 @@ export default function ReviewPage() {
                         <div className="flex justify-between items-center">
                           <span className="text-xs text-gray-600">Overall Quality Level:</span>
                           <span className={`text-xs font-semibold px-2 py-1 rounded ${selectedItem.quality_score >= 0.9 ? 'bg-green-100 text-green-800' :
-                              selectedItem.quality_score >= 0.7 ? 'bg-blue-100 text-blue-800' :
-                                selectedItem.quality_score >= 0.4 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
+                            selectedItem.quality_score >= 0.7 ? 'bg-blue-100 text-blue-800' :
+                              selectedItem.quality_score >= 0.4 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
                             }`}>
                             {selectedItem.quality_score >= 0.9 ? '🏆 Excellent' :
                               selectedItem.quality_score >= 0.7 ? '✨ Good' :
@@ -463,7 +463,7 @@ export default function ReviewPage() {
                     className="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 font-medium flex items-center"
                   >
                     <FileText className="w-4 h-4 mr-2" />
-                    Step 8: Export (Copy)
+                    Export (Copy)
                   </button>
                 )}
               </div>

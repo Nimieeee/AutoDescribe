@@ -8,8 +8,8 @@ export default function Navigation() {
   const pathname = usePathname()
 
   const links = [
-    { href: '/', label: '1. Input & Generate', icon: Sparkles },
-    { href: '/review', label: '7. Review & Export', icon: ClipboardList },
+    { href: '/', label: 'Home', icon: Sparkles },
+    { href: '/review', label: 'Review', icon: ClipboardList },
   ]
 
   return (

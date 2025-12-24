@@ -133,18 +133,18 @@ Experience the difference with ${product.name} - your satisfaction is our priori
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Input Form - Step 1 & 2 */}
+        {/* Input Form */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="border-b border-gray-100 pb-4 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900">Step 1: Input & Search</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Input & Search</h2>
             <p className="text-sm text-gray-500">Find a product to generate description for</p>
           </div>
 
           <div className="space-y-6">
-            {/* Step 2: Search */}
+            {/* Search */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                2. Search Product Database (CSV)
+                Search Product Database (CSV)
               </label>
               <SearchSuggestions
                 query={searchQuery}
@@ -215,7 +215,7 @@ Experience the difference with ${product.name} - your satisfaction is our priori
               {generating ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                  <span>Processing Pipeline (Steps 3-6)...</span>
+                  <span>Generating Content...</span>
                 </>
               ) : (
                 <>
