@@ -299,9 +299,9 @@ Experience the difference with ${product.name} - your satisfaction is our priori
                       const text = rawText;
 
                       // Split by newlines (handle both \n and missing newlines before emojis)
-                      // Insert newlines before emoji bullets that might be inline
+                      // Insert newlines before emoji bullets that might be inline, BUT skip if preceded by a dash/hyphen (to keep inline ratings like " - ⭐4.5/5" intact)
                       const normalizedText = text
-                        .replace(/\s+(⭐|🔑|🛠️|🎯|💰|👉|✨|🏁)/g, '\n$1')
+                        .replace(/([^\-–—])\s+(⭐|🔑|🛠️|🎯|💰|👉|✨|🏁)/g, '$1\n$2')
                         .replace(/\s+(Why This|Bottom Line|Key Features|Specifications)/gi, '\n$1');
 
                       const lines = normalizedText.split(/\n/);
@@ -357,6 +357,9 @@ Experience the difference with ${product.name} - your satisfaction is our priori
                         } else if (emojiBulletMatch) {
                           const emoji = emojiBulletMatch[1];
                           const bulletText = trimmed.replace(emojiBulletMatch[0], '');
+                          // Prevent empty bullets (fixes lone star issue)
+                          if (!bulletText.trim()) return;
+
                           if (currentSection && (currentSection.type === 'feature-section' || currentSection.type === 'bottom-line')) {
                             currentSection.bullets!.push({ emoji, text: bulletText });
                           } else {
