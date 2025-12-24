@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import { GeneratedContent } from '@/lib/supabase'
 import {
   RefreshCw, CheckCircle, XCircle, Clock,
-  BarChart3, AlertTriangle, Target, Trophy, Sparkles, FileText, AlertCircle
+  BarChart3, AlertTriangle, Target, Trophy, Sparkles, FileText, AlertCircle,
+  ChevronDown, ChevronUp, Copy, ExternalLink
 } from 'lucide-react'
 
 export default function ReviewPage() {
@@ -53,14 +54,12 @@ export default function ReviewPage() {
         throw new Error('Failed to update status')
       }
 
-      // Update local state
       setContent(prev => prev.map(item =>
         item.id === id ? { ...item, status } : item
       ))
 
-      // Clear selection if this item was selected
       if (selectedItem?.id === id) {
-        setSelectedItem(null)
+        setSelectedItem(prev => prev ? { ...prev, status } : null)
       }
     } catch (error) {
       console.error('Error updating status:', error)
@@ -92,14 +91,12 @@ export default function ReviewPage() {
         throw new Error(errData.error || 'Failed to save edit')
       }
 
-      // Update local state
       setContent(prev => prev.map(item =>
         item.id === selectedItem.id ? { ...item, edited_text: editedText } : item
       ))
       setSelectedItem({ ...selectedItem, edited_text: editedText })
       setIsEditing(false)
 
-      // Show success message
       alert('Changes saved successfully!')
     } catch (error: any) {
       console.error('Error saving edit:', error)
@@ -118,17 +115,17 @@ export default function ReviewPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'approved': return 'bg-green-100 text-green-800'
-      case 'rejected': return 'bg-red-100 text-red-800'
-      default: return 'bg-yellow-100 text-yellow-800'
+      case 'approved': return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-800'
+      case 'rejected': return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 border border-red-200 dark:border-red-800'
+      default: return 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
     }
   }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'approved': return <CheckCircle className="w-5 h-5 text-green-600" />
-      case 'rejected': return <XCircle className="w-5 h-5 text-red-600" />
-      default: return <Clock className="w-5 h-5 text-yellow-600" />
+      case 'approved': return <CheckCircle className="w-4 h-4" />
+      case 'rejected': return <XCircle className="w-4 h-4" />
+      default: return <Clock className="w-4 h-4" />
     }
   }
 
@@ -141,344 +138,318 @@ export default function ReviewPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-transparent p-4 md:p-6 lg:p-8">
+      <div className="max-w-[1800px] mx-auto">
+
+        {/* Header Section */}
+        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">AutoDescribe Review Dashboard</h1>
-            <p className="text-gray-600 mt-2">Review, edit, and approve AI-generated descriptions</p>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-200 tracking-tight">
+              Review <span className="text-blue-600 dark:text-blue-400">Dashboard</span>
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-2 text-lg">
+              Manage and refine your AI-generated product content
+            </p>
           </div>
           <button
             onClick={loadContent}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-5 py-2.5 bg-white dark:bg-gray-800 text-gray-700 dark:text-white rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition-all flex items-center font-medium"
           >
-            <RefreshCw className="w-4 h-4 mr-2 inline" />
-            Refresh
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh Queue
           </button>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Review Queue */}
-        <div className="lg:col-span-1 bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Review Queue</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
 
-            {/* Filter Tabs */}
-            <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
-              {(['all', 'pending', 'approved', 'rejected'] as const).map((filterOption) => (
-                <button
-                  key={filterOption}
-                  onClick={() => setFilter(filterOption)}
-                  className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${filter === filterOption
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                >
-                  {filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* LEFT COLUMN: Queue List */}
+          <div className="lg:col-span-4 xl:col-span-3 lg:sticky lg:top-24 flex flex-col gap-6 h-[calc(100vh-12rem)]">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col h-full">
 
-          <div className="max-h-96 overflow-y-auto">
-            {filteredItems.length === 0 ? (
-              <div className="p-6 text-center text-gray-500">
-                {filter === 'pending' ? 'No pending items' : `No ${filter} items`}
-              </div>
-            ) : (
-              filteredItems.map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => setSelectedItem(item)}
-                  className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${selectedItem?.id === item.id ? 'bg-blue-50 border-blue-200' : ''
-                    }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(item.status)}`}>
-                      {getStatusIcon(item.status)} {item.status}
-                    </span>
-                    {item.quality_score && (
-                      <span className="text-xs text-gray-500">
-                        Score: {Math.round(item.quality_score * 100)}%
-                      </span>
-                    )}
-                  </div>
-                  <h3 className="font-medium text-sm text-gray-900 mb-1">
-                    {item.products?.name || 'Unknown Product'}
-                  </h3>
-                  <p className="text-xs text-gray-500">
-                    SKU: {item.products?.sku} • {item.content_type}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {new Date(item.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Review Detail */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow">
-          {selectedItem ? (
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    {selectedItem.products?.name || 'Unknown Product'}
-                  </h2>
-                  <p className="text-gray-600">
-                    SKU: {selectedItem.products?.sku} • {selectedItem.content_type}
-                  </p>
-                </div>
-                <span className={`px-3 py-1 text-sm rounded-full ${getStatusColor(selectedItem.status)}`}>
-                  {getStatusIcon(selectedItem.status)} {selectedItem.status}
-                </span>
-              </div>
-
-              {/* Content */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-medium text-gray-700">
-                    {selectedItem.edited_text ? 'Edited Content' : 'Generated Content'}
-                  </h3>
-                  {!isEditing && (
+              {/* Filters */}
+              <div className="p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 backdrop-blur-sm">
+                <div className="flex p-1 bg-gray-200/50 dark:bg-gray-700/50 rounded-xl">
+                  {(['all', 'pending', 'approved', 'rejected'] as const).map((filterOption) => (
                     <button
-                      onClick={startEditing}
-                      className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200"
+                      key={filterOption}
+                      onClick={() => setFilter(filterOption)}
+                      className={`flex-1 px-3 py-2 text-xs font-bold uppercase tracking-wide rounded-lg transition-all ${filter === filterOption
+                        ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                        }`}
                     >
-                      ✏️ Edit
+                      {filterOption}
                     </button>
-                  )}
+                  ))}
                 </div>
+              </div>
 
-                {isEditing ? (
-                  <div className="space-y-3">
-                    <textarea
-                      value={editedText}
-                      onChange={(e) => setEditedText(e.target.value)}
-                      className="w-full h-64 p-4 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Edit the content..."
-                    />
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={saveEdit}
-                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
-                      >
-                        💾 Save Changes
-                      </button>
-                      <button
-                        onClick={cancelEdit}
-                        className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 text-sm"
-                      >
-                        ❌ Cancel
-                      </button>
+              {/* List */}
+              <div className="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar">
+                {filteredItems.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center text-gray-400 dark:text-gray-500 p-6">
+                    <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-3">
+                      <FileText className="w-6 h-6" />
                     </div>
+                    <p>No items found</p>
                   </div>
                 ) : (
-                  <div className="p-4 bg-gray-50 rounded-md border">
-                    <div className="text-gray-900 whitespace-pre-wrap leading-relaxed">
-                      {selectedItem.edited_text || selectedItem.generated_text}
+                  filteredItems.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => setSelectedItem(item)}
+                      className={`group relative p-4 rounded-xl border transition-all cursor-pointer ${selectedItem?.id === item.id
+                          ? 'bg-blue-50/50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 shadow-sm ring-1 ring-blue-500/20'
+                          : 'bg-white dark:bg-gray-800 border-transparent hover:border-gray-200 dark:hover:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                        }`}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold rounded-full ${getStatusColor(item.status)}`}>
+                          {getStatusIcon(item.status)}
+                          {item.status}
+                        </span>
+                        {item.quality_score && (
+                          <span className={`text-xs font-mono font-medium ${item.quality_score > 0.8 ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                            {Math.round(item.quality_score * 100)}%
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1 line-clamp-2 leading-snug">
+                        {item.products?.name || 'Unknown Product'}
+                      </h3>
+
+                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 font-mono">
+                        <span>{item.products?.sku}</span>
+                        <span>•</span>
+                        <span className="capitalize">{item.content_type}</span>
+                      </div>
                     </div>
-                    {selectedItem.edited_text && (
-                      <div className="mt-3 pt-3 border-t border-gray-200">
-                        <p className="text-xs text-blue-600 font-medium">✏️ This content has been edited</p>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: Detail View */}
+          <div className="lg:col-span-8 xl:col-span-9 bg-white dark:bg-gray-800 rounded-2xl shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 min-h-[600px] overflow-hidden flex flex-col">
+            {selectedItem ? (
+              <>
+                {/* Detail Header */}
+                <div className="px-8 py-6 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-black/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-white line-clamp-1">
+                        {selectedItem.products?.name}
+                      </h2>
+                      <span className={`flex-shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold uppercase tracking-wider rounded-lg ${getStatusColor(selectedItem.status)}`}>
+                        {getStatusIcon(selectedItem.status)} {selectedItem.status}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                      <div className="flex items-center gap-1.5">
+                        <Target className="w-4 h-4" />
+                        <span className="font-mono">{selectedItem.products?.sku}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-4 h-4" />
+                        <span>{new Date(selectedItem.created_at).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="flex items-center gap-2">
+                    {selectedItem.status === 'pending' && (
+                      <>
+                        <button
+                          onClick={() => updateStatus(selectedItem.id, 'approved')}
+                          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg shadow-lg shadow-green-500/20 transition-all flex items-center gap-2"
+                        >
+                          <CheckCircle className="w-4 h-4" /> Approve
+                        </button>
+                        <button
+                          onClick={() => updateStatus(selectedItem.id, 'rejected')}
+                          className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 text-sm font-semibold rounded-lg transition-all flex items-center gap-2"
+                        >
+                          <XCircle className="w-4 h-4" /> Reject
+                        </button>
+                      </>
+                    )}
+                    {selectedItem.status === 'approved' && (
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(selectedItem.edited_text || selectedItem.generated_text)
+                          alert('Copied to clipboard!')
+                        }}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2"
+                      >
+                        <Copy className="w-4 h-4" /> Copy Content
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="p-8 space-y-8">
+
+                  {/* Content Area */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <FileText className="w-5 h-5 text-gray-400" />
+                        Content
+                      </h3>
+                      {!isEditing && (
+                        <button
+                          onClick={startEditing}
+                          className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                        >
+                          Edit Text
+                        </button>
+                      )}
+                    </div>
+
+                    {isEditing ? (
+                      <div className="bg-white dark:bg-gray-800 rounded-xl border border-blue-200 dark:border-blue-800 p-1 shadow-inner">
+                        <textarea
+                          value={editedText}
+                          onChange={(e) => setEditedText(e.target.value)}
+                          className="w-full h-96 p-4 bg-transparent border-none focus:ring-0 text-gray-800 dark:text-gray-200 leading-relaxed resize-none text-base"
+                          placeholder="Edit content here..."
+                        />
+                        <div className="flex justify-end gap-2 p-2 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 rounded-b-lg">
+                          <button onClick={cancelEdit} className="px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">Cancel</button>
+                          <button onClick={saveEdit} className="px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save Changes</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-100 dark:border-gray-800 p-6 relative group">
+                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(selectedItem.edited_text || selectedItem.generated_text)
+                            }}
+                            className="p-2 bg-white dark:bg-gray-800 text-gray-500 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:text-blue-600"
+                            title="Copy to clipboard"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="prose dark:prose-invert max-w-none text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed">
+                          {selectedItem.edited_text || selectedItem.generated_text}
+                        </div>
+                        {selectedItem.edited_text && (
+                          <div className="mt-4 flex items-center gap-2 text-xs text-gray-400 italic border-t border-gray-200 dark:border-gray-700 pt-3">
+                            <span className="w-2 h-2 rounded-full bg-blue-500" />
+                            Edited by user
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                )}
-              </div>
 
-              {/* SEO Keywords */}
-              {selectedItem.seo_keywords && selectedItem.seo_keywords.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">SEO Keywords</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedItem.seo_keywords.map((keyword, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                      >
-                        {keyword}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
+                  {/* Metrics & Analysis Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-              {/* Quality Score */}
-              {selectedItem.quality_score && (
-                <div className="mb-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-medium text-gray-700">Quality Score</h3>
-                    <button
-                      onClick={() => setShowScoreBreakdown(!showScoreBreakdown)}
-                      className="text-xs text-blue-600 hover:text-blue-800"
-                    >
-                      {showScoreBreakdown ? '🔼 Hide Details' : '🔽 Show Details'}
-                    </button>
-                  </div>
-
-                  <div className="flex items-center mb-3">
-                    <div className="flex-1 bg-gray-200 rounded-full h-3">
-                      <div
-                        className={`h-3 rounded-full ${selectedItem.quality_score >= 0.9 ? 'bg-green-500' :
-                          selectedItem.quality_score >= 0.7 ? 'bg-blue-500' :
-                            selectedItem.quality_score >= 0.4 ? 'bg-yellow-500' : 'bg-red-500'
-                          }`}
-                        style={{ width: `${selectedItem.quality_score * 100}%` }}
-                      ></div>
-                    </div>
-                    <span className="ml-3 text-sm font-semibold text-gray-900">
-                      {Math.round(selectedItem.quality_score * 100)}%
-                    </span>
-                  </div>
-
-                  {showScoreBreakdown && selectedItem.metadata?.score_breakdown && (
-                    <div className="bg-gray-50 rounded-md p-4 space-y-3">
-                      <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                        📊 5-Dimensional Scoring System
-                      </h4>
-
-                      {/* Score Dimensions */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs text-gray-600">🔍 Clarity</span>
-                            <span className="text-xs font-medium">{selectedItem.metadata.score_breakdown.clarity || 0}/2</span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-1.5">
-                            <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: `${((selectedItem.metadata.score_breakdown.clarity || 0) / 2) * 100}%` }}></div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs text-gray-600">✂️ Conciseness</span>
-                            <span className="text-xs font-medium">{selectedItem.metadata.score_breakdown.conciseness || 0}/2</span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-1.5">
-                            <div className="bg-green-500 h-1.5 rounded-full" style={{ width: `${((selectedItem.metadata.score_breakdown.conciseness || 0) / 2) * 100}%` }}></div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs text-gray-600">⚠️ Accuracy</span>
-                            <span className="text-xs font-medium">{selectedItem.metadata.score_breakdown.technicalAccuracy || 0}/2</span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-1.5">
-                            <div className="bg-yellow-500 h-1.5 rounded-full" style={{ width: `${((selectedItem.metadata.score_breakdown.technicalAccuracy || 0) / 2) * 100}%` }}></div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs text-gray-600">👔 Professional Tone</span>
-                            <span className="text-xs font-medium">{selectedItem.metadata.score_breakdown.professionalTone || 0}/2</span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-1.5">
-                            <div className="bg-purple-500 h-1.5 rounded-full" style={{ width: `${((selectedItem.metadata.score_breakdown.professionalTone || 0) / 2) * 100}%` }}></div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2 sm:col-span-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs text-gray-600">🎯 SEO & Engagement</span>
-                            <span className="text-xs font-medium">{selectedItem.metadata.score_breakdown.seoEngagement || 0}/2</span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-1.5">
-                            <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: `${((selectedItem.metadata.score_breakdown.seoEngagement || 0) / 2) * 100}%` }}></div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Quality Level */}
-                      <div className="pt-2 border-t border-gray-200">
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs text-gray-600">Overall Quality Level:</span>
-                          <span className={`text-xs font-semibold px-2 py-1 rounded ${selectedItem.quality_score >= 0.9 ? 'bg-green-100 text-green-800' :
-                            selectedItem.quality_score >= 0.7 ? 'bg-blue-100 text-blue-800' :
-                              selectedItem.quality_score >= 0.4 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
-                            }`}>
-                            {selectedItem.quality_score >= 0.9 ? '🏆 Excellent' :
-                              selectedItem.quality_score >= 0.7 ? '✨ Good' :
-                                selectedItem.quality_score >= 0.4 ? '📝 Fair' : '🚨 Poor'}
+                    {/* Keywords */}
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                        <Target className="w-4 h-4" /> SEO Keywords
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedItem.seo_keywords?.map((k, i) => (
+                          <span key={i} className="px-2.5 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-800/50 rounded-lg text-sm font-medium">
+                            #{k}
                           </span>
-                        </div>
+                        ))}
+                        {(!selectedItem.seo_keywords || selectedItem.seo_keywords.length === 0) && (
+                          <span className="text-sm text-gray-400 italic">No keywords detected</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Quality Score */}
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                          <Trophy className="w-4 h-4" /> Quality Score
+                        </h3>
+                        <button
+                          onClick={() => setShowScoreBreakdown(!showScoreBreakdown)}
+                          className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                        >
+                          {showScoreBreakdown ? 'Hide details' : 'View breakdown'}
+                          {showScoreBreakdown ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                        </button>
                       </div>
 
-                      {/* Readability Metrics */}
-                      {selectedItem.metadata.score_breakdown.breakdown && (
-                        <div className="pt-2 border-t border-gray-200">
-                          <h5 className="text-xs font-medium text-gray-700 mb-2">📖 Readability Metrics</h5>
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div>
-                              <span className="text-gray-500">Flesch Score:</span>
-                              <span className="ml-1 font-medium">{Math.round(selectedItem.metadata.score_breakdown.breakdown.fleschScore || 0)}</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Avg Words/Sentence:</span>
-                              <span className="ml-1 font-medium">{Math.round(selectedItem.metadata.score_breakdown.breakdown.avgWordsPerSentence || 0)}</span>
-                            </div>
+                      <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 border border-gray-100 dark:border-gray-800">
+                        <div className="flex items-center gap-4 mb-2">
+                          <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                            {Math.round((selectedItem.quality_score || 0) * 100)}%
+                          </div>
+                          <div className="flex-1 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 ${(selectedItem.quality_score || 0) > 0.8 ? 'bg-green-500' :
+                                  (selectedItem.quality_score || 0) > 0.6 ? 'bg-blue-500' : 'bg-amber-500'
+                                }`}
+                              style={{ width: `${(selectedItem.quality_score || 0) * 100}%` }}
+                            />
                           </div>
                         </div>
-                      )}
+
+                        {/* Animated Breakdown */}
+                        {showScoreBreakdown && selectedItem.metadata?.score_breakdown && (
+                          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
+                            {/* Clarity */}
+                            <div>
+                              <div className="flex justify-between text-xs mb-1">
+                                <span className="text-gray-500 dark:text-gray-400">Clarity</span>
+                                <span className="font-mono">{selectedItem.metadata.score_breakdown.clarity}/2</span>
+                              </div>
+                              <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full w-full">
+                                <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(selectedItem.metadata.score_breakdown.clarity || 0) / 2 * 100}%` }}></div>
+                              </div>
+                            </div>
+                            {/* Tone */}
+                            <div>
+                              <div className="flex justify-between text-xs mb-1">
+                                <span className="text-gray-500 dark:text-gray-400">Tone</span>
+                                <span className="font-mono">{selectedItem.metadata.score_breakdown.professionalTone}/2</span>
+                              </div>
+                              <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full w-full">
+                                <div className="h-full bg-purple-500 rounded-full" style={{ width: `${(selectedItem.metadata.score_breakdown.professionalTone || 0) / 2 * 100}%` }}></div>
+                              </div>
+                            </div>
+                            {/* Engagement */}
+                            <div>
+                              <div className="flex justify-between text-xs mb-1">
+                                <span className="text-gray-500 dark:text-gray-400">Engagement</span>
+                                <span className="font-mono">{selectedItem.metadata.score_breakdown.seoEngagement}/2</span>
+                              </div>
+                              <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full w-full">
+                                <div className="h-full bg-pink-500 rounded-full" style={{ width: `${(selectedItem.metadata.score_breakdown.seoEngagement || 0) / 2 * 100}%` }}></div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
+                  </div>
+
                 </div>
-              )}
-
-              {/* Action Buttons - Step 8 */}
-              <div className="flex space-x-3 pt-4 border-t border-gray-100">
-                {selectedItem.status === 'pending' && (
-                  <>
-                    <button
-                      onClick={() => updateStatus(selectedItem.id, 'approved')}
-                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium"
-                    >
-                      ✅ Approve
-                    </button>
-                    <button
-                      onClick={() => updateStatus(selectedItem.id, 'rejected')}
-                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 font-medium"
-                    >
-                      ❌ Reject
-                    </button>
-                  </>
-                )}
-
-                {selectedItem.status === 'approved' && (
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(selectedItem.edited_text || selectedItem.generated_text)
-                      alert('Content copied to clipboard! Ready for export.')
-                    }}
-                    className="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 font-medium flex items-center"
-                  >
-                    <FileText className="w-4 h-4 mr-2" />
-                    Export (Copy)
-                  </button>
-                )}
-              </div>
-
-              {/* Metadata */}
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Details</h3>
-                <div className="text-xs text-gray-500 space-y-1">
-                  <p>Created: {new Date(selectedItem.created_at).toLocaleString()}</p>
-                  <p>Updated: {new Date(selectedItem.updated_at).toLocaleString()}</p>
-                  <p>ID: {selectedItem.id}</p>
+              </>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-gray-400 dark:text-gray-500">
+                <div className="w-20 h-20 bg-gray-50 dark:bg-gray-900 rounded-full flex items-center justify-center mb-6">
+                  <Sparkles className="w-8 h-8 opacity-50" />
                 </div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Select an item to review</h3>
+                <p className="max-w-xs mx-auto">Click on any item from the queue on the left to see details, score breakdown, and editing options.</p>
               </div>
-            </div>
-          ) : (
-            <div className="p-6 text-center">
-              <div className="text-gray-400 text-6xl mb-4">📋</div>
-              <p className="text-gray-500">Select an item from the queue to review</p>
-            </div>
-          )}
+            )}
+          </div>
+
         </div>
       </div>
     </div>
