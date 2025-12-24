@@ -5,6 +5,8 @@ import { Product } from '@/lib/supabase'
 import { csvRAGService } from '@/lib/csv-rag'
 import { useKPITracking } from '@/lib/kpi-client'
 import SearchSuggestions from '@/components/SearchSuggestions'
+import { CheckCircle, AlertCircle, Sparkles } from 'lucide-react'
+
 
 export default function GeneratePage() {
   const [productSku, setProductSku] = useState('')
@@ -117,244 +119,265 @@ Experience the difference with ${product.name} - your satisfaction is our priori
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Generate Descriptions</h1>
-        <p className="text-gray-600 mt-2">Create AI-powered product descriptions with AutoDescribe</p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Input Form */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="border-b border-gray-100 pb-4 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900">Input & Search</h2>
-            <p className="text-sm text-gray-500">Find a product to generate description for</p>
+    <div className="min-h-screen bg-transparent p-4 md:p-6 lg:p-8">
+      <div className="max-w-[1800px] mx-auto">
+        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-200 tracking-tight">
+              AutoDescribe <span className="text-blue-600 dark:text-blue-400">Studio</span>
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-2 text-lg">
+              Enterprise-grade AI product content generation
+            </p>
           </div>
-
-          <div className="space-y-6">
-            {/* Search */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search Product Database (CSV)
-              </label>
-              <SearchSuggestions
-                query={searchQuery}
-                onSelect={(suggestion) => {
-                  if (suggestion.type === 'product') {
-                    setProductSku(suggestion.value)
-                    setSearchQuery('')
-                    trackUserInteraction('select', 'search_suggestion', {
-                      type: suggestion.type,
-                      value: suggestion.value
-                    })
-                  } else {
-                    setSearchQuery(suggestion.value)
-                  }
-                }}
-                onSearch={(query) => setSearchQuery(query)}
-                placeholder="Search by name, brand, or category..."
-              />
+          <div className="flex items-center gap-3">
+            <div className="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-600 dark:text-gray-300 shadow-sm">
+              Model: 2.0 Fast
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Selected SKU
-              </label>
-              <input
-                type="text"
-                value={productSku}
-                onChange={(e) => setProductSku(e.target.value)}
-                placeholder="e.g., B00GS8W3T4"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Content Type
-              </label>
-              <select
-                value={contentType}
-                onChange={(e) => setContentType(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="description">Product Description</option>
-                <option value="features">Feature List</option>
-                <option value="benefits">Benefits Summary</option>
-                <option value="seo">SEO Optimized Content</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Custom Focus (Optional)
-              </label>
-              <textarea
-                value={customPrompt}
-                onChange={(e) => setCustomPrompt(e.target.value)}
-                placeholder="e.g., Focus on durability and eco-friendly materials..."
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <button
-              onClick={handleGenerate}
-              disabled={generating}
-              className="w-full bg-blue-600 text-white px-4 py-3 rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
-            >
-              {generating ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                  <span>Generating Content...</span>
-                </>
-              ) : (
-                <>
-                  <span>🚀 Run Generation Pipeline</span>
-                </>
-              )}
-            </button>
-
-            {error && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm">
-                Error: {error}
-              </div>
-            )}
           </div>
         </div>
 
-        {/* Output */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Generated Content</h2>
-
-          {result ? (
-            <div className="space-y-4">
-              <div className="p-4 bg-green-50 border border-green-200 rounded-md">
-                <p className="text-green-800 text-sm font-medium">
-                  ✅ Content generated successfully and saved to review queue!
-                </p>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+          {/* Left Column: Input (Sticky on large screens) */}
+          <div className="lg:col-span-4 xl:col-span-3 lg:sticky lg:top-24 space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 overflow-hidden backdrop-blur-sm">
+              <div className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-800 border-b border-gray-100 dark:border-gray-700/50 p-6">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                    🚀
+                  </span>
+                  Configuration
+                </h2>
               </div>
 
-              <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Product</h3>
-                <p className="text-sm text-gray-600">
-                  {result.products?.name} (SKU: {result.products?.sku})
-                </p>
+              <div className="p-6 space-y-6">
+                {/* Search */}
+                <div className="group relative z-20">
+                  <label className="block text-xs uppercase tracking-wider font-bold text-gray-500 dark:text-gray-400 mb-2">
+                    Product Search
+                  </label>
+                  <SearchSuggestions
+                    query={searchQuery}
+                    onSelect={(suggestion) => {
+                      if (suggestion.type === 'product') {
+                        setProductSku(suggestion.value)
+                        setSearchQuery('')
+                        trackUserInteraction('select', 'search_suggestion', {
+                          type: suggestion.type,
+                          value: suggestion.value
+                        })
+                      } else {
+                        setSearchQuery(suggestion.value)
+                      }
+                    }}
+                    onSearch={(query) => setSearchQuery(query)}
+                    placeholder="Search database..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider font-bold text-gray-500 dark:text-gray-400 mb-2">
+                    Target SKU
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={productSku}
+                      onChange={(e) => setProductSku(e.target.value)}
+                      placeholder="e.g., B00GS8W3T4"
+                      className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-mono text-sm"
+                    />
+                    {productSku && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 animate-in fade-in zoom-in">
+                        <CheckCircle className="w-5 h-5" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider font-bold text-gray-500 dark:text-gray-400 mb-2">
+                    Content Type
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={contentType}
+                      onChange={(e) => setContentType(e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none text-gray-700 dark:text-gray-200"
+                    >
+                      <option value="description">Product Description</option>
+                      <option value="features">Feature List</option>
+                      <option value="benefits">Benefits Summary</option>
+                      <option value="seo">SEO Optimized Content</option>
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider font-bold text-gray-500 dark:text-gray-400 mb-2">
+                    Custom Instructions
+                  </label>
+                  <textarea
+                    value={customPrompt}
+                    onChange={(e) => setCustomPrompt(e.target.value)}
+                    placeholder="E.g., 'Make it punchy', 'Focus on durability'..."
+                    rows={4}
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none text-sm"
+                  />
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    onClick={handleGenerate}
+                    disabled={generating}
+                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-lg px-4 py-4 rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center space-x-2"
+                  >
+                    {generating ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                        <span>Processing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-5 h-5" />
+                        <span>Generate Content</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {error && (
+                  <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm animate-shake">
+                    <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                    <p>{error}</p>
+                  </div>
+                )}
               </div>
+            </div>
+          </div>
 
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">Content Preview</h3>
-                <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+          {/* Right Column: Output */}
+          <div className="lg:col-span-8 xl:col-span-9">
+            {result ? (
+              <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500 fade-in">
+                {/* Success Banner */}
+                <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
+                  <div className="flex items-center gap-2 text-green-700 dark:text-green-400 font-medium">
+                    <CheckCircle className="w-5 h-5" />
+                    <span>Content generated & saved to database</span>
+                  </div>
+                  <a href="/review" className="text-sm font-semibold text-green-700 dark:text-green-400 hover:underline">
+                    View in Review Queue &rarr;
+                  </a>
+                </div>
 
-                  <div className="p-6 md:p-8 space-y-6">
-                    {/* Enhanced Content Parser */}
+                {/* Main Content Card */}
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 overflow-hidden">
+                  {/* Header */}
+                  <div className="border-b border-gray-100 dark:border-gray-700 p-6 md:p-8 bg-gray-50/50 dark:bg-black/20">
+                    <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                      {result.products?.name}
+                    </h2>
+                    <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                      <span className="font-mono bg-white dark:bg-gray-700 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
+                        {result.products?.sku}
+                      </span>
+                      <span>•</span>
+                      <span>{result.products?.brandName || 'Unknown Brand'}</span>
+                    </div>
+                  </div>
+
+                  {/* Content Body */}
+                  <div className="p-6 md:p-10 space-y-8">
+                    {/* Enhanced Content Parser REFACTORED */}
                     {(() => {
                       const text = result.generated_text || '';
-                      // Split by double newlines to find potential sections
-                      const blocks = text.split(/\n\n+/);
+                      // Remove markdown bolding artifacts if present
+                      const cleanText = text.replace(/\*\*/g, '');
+
+                      const blocks = cleanText.split(/\n\n+/);
 
                       return blocks.map((block: string, idx: number) => {
                         const trimmedBlock = block.trim();
                         if (!trimmedBlock) return null;
 
-                        // 1. Check for specific headers with icons
+                        // Detect Header sections
                         const lowerBlock = trimmedBlock.toLowerCase();
-                        const isFeatureSection = lowerBlock.includes('why this') || lowerBlock.includes('stand out') || lowerBlock.includes('key features');
-                        const isBottomLine = lowerBlock.includes('bottom line') || lowerBlock.includes('conclusion');
+                        const isFeatureSection = lowerBlock.includes('why this') || lowerBlock.includes('stand out') || lowerBlock.includes('key features') || lowerBlock.includes('specifications');
+                        const isBottomLine = lowerBlock.includes('bottom line') || lowerBlock.includes('conclusion') || lowerBlock.includes('verdict');
 
-                        // 2. Headings detection
-                        // Matches: "Heading:", "Heading", or line ending with colon
-                        const headingMatch = trimmedBlock.match(/^([A-Z][\w\s\W]{3,50}?)(:|\n|$)/);
-                        // Reduced false positives for headings
-                        const isHeading = headingMatch && (headingMatch[0].length < 60 && (headingMatch[0].includes(':') || isFeatureSection || isBottomLine));
+                        // Heuristic for simple headers (Short line, usually ends with colon or is just a title)
+                        const isSimpleHeader = trimmedBlock.length < 80 && !trimmedBlock.includes('\n') && (trimmedBlock.endsWith(':') || /^[A-Z]/.test(trimmedBlock));
 
                         if (isFeatureSection || isBottomLine) {
-                          // Split section into title and content (often bullets)
                           const firstLineEnd = trimmedBlock.indexOf('\n');
                           const title = firstLineEnd > -1 ? trimmedBlock.substring(0, firstLineEnd) : trimmedBlock;
                           const content = firstLineEnd > -1 ? trimmedBlock.substring(firstLineEnd + 1) : '';
 
                           return (
-                            <div key={idx} className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5 border border-gray-100 dark:border-gray-800">
-                              <h4 className="font-bold text-gray-900 dark:text-white text-lg mb-4 flex items-center gap-2 border-b dark:border-gray-700 pb-2">
-                                {isFeatureSection && '✨'}
-                                {isBottomLine && '🏁'}
-                                {title}
-                              </h4>
-                              {content && (
-                                <div className="space-y-3">
-                                  {content.split(/\n/).map((line, lIdx) => {
-                                    const cleanLine = line.trim();
-                                    if (!cleanLine) return null;
-
-                                    // Render list items nicely
-                                    if (cleanLine.match(/^[•\-*⭐🔑🛠️🎯💰👉]/)) {
-                                      // Extract emoji if present as bullet
-                                      const emojiMatch = cleanLine.match(/^([⭐🔑🛠️🎯💰👉]+)/);
-                                      const emoji = emojiMatch ? emojiMatch[1] : null;
-                                      const text = cleanLine.replace(/^[•\-*⭐🔑🛠️🎯💰👉]+\s*/, '');
-
-                                      return (
-                                        <div key={lIdx} className="flex gap-3 items-start text-gray-700 dark:text-gray-300 group hover:bg-white dark:hover:bg-gray-800 p-2 rounded transition-colors">
-                                          <span className="flex-shrink-0 mt-1 text-lg">
-                                            {emoji || <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2" />}
-                                          </span>
-                                          <span className="leading-relaxed font-medium">{text}</span>
-                                        </div>
-                                      );
-                                    }
-
-                                    return <p key={lIdx} className="text-gray-700 dark:text-gray-300 leading-relaxed">{cleanLine}</p>
-                                  })}
-                                </div>
-                              )}
+                            <div key={idx} className={`rounded-xl p-6 md:p-8 border ${isBottomLine ? 'bg-blue-50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-800' : 'bg-gray-50 dark:bg-gray-900/50 border-gray-100 dark:border-gray-800'}`}>
+                              <h3 className="font-bold text-xl text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                                {isFeatureSection && <span className="text-amber-500">✨</span>}
+                                {isBottomLine && <span className="text-blue-500">🏁</span>}
+                                {title.replace(/:$/, '')}
+                              </h3>
+                              <div className="space-y-4">
+                                {content.split(/\n/).map((line, lIdx) => {
+                                  const cleanLine = line.trim();
+                                  if (!cleanLine) return null;
+                                  // Parse list items
+                                  if (cleanLine.match(/^[•\-*⭐🔑🛠️🎯💰👉]/)) {
+                                    const emojiMatch = cleanLine.match(/^([⭐🔑🛠️🎯💰👉]+)/);
+                                    const emoji = emojiMatch ? emojiMatch[1] : null;
+                                    const text = cleanLine.replace(/^[•\-*⭐🔑🛠️🎯💰👉]+\s*/, '');
+                                    return (
+                                      <div key={lIdx} className="flex gap-4 items-start text-gray-700 dark:text-gray-300">
+                                        <span className="flex-shrink-0 mt-1 text-lg">
+                                          {emoji || <div className="w-2 h-2 rounded-full bg-blue-500 mt-2" />}
+                                        </span>
+                                        <span className="leading-relaxed text-base">{text}</span>
+                                      </div>
+                                    );
+                                  }
+                                  return <p key={lIdx} className="text-gray-700 dark:text-gray-300 leading-relaxed text-base">{cleanLine}</p>
+                                })}
+                              </div>
                             </div>
                           );
                         }
 
-                        // 3. Regular Paragraphs vs Lists
-                        // If block contains multiple bullet points, render as list
-                        if (trimmedBlock.includes('\n•') || trimmedBlock.includes('\n-') || trimmedBlock.match(/\n[⭐🔑🛠️🎯💰👉]/)) {
+                        if (isSimpleHeader) {
+                          return <h3 key={idx} className="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4 border-l-4 border-blue-500 pl-4">{trimmedBlock}</h3>
+                        }
+
+                        // Lists inside normal blocks
+                        if (trimmedBlock.includes('\n•') || trimmedBlock.includes('\n-')) {
                           const lines = trimmedBlock.split('\n');
                           return (
-                            <ul key={idx} className="space-y-3 my-4">
+                            <ul key={idx} className="my-6 space-y-3 pl-4">
                               {lines.map((line, lIdx) => {
                                 const cleanLine = line.trim();
                                 if (!cleanLine) return null;
-
-                                const emojiMatch = cleanLine.match(/^([⭐🔑🛠️🎯💰👉]+)/);
                                 const isBullet = cleanLine.match(/^[•\-*]/);
-
-                                if (emojiMatch || isBullet) {
-                                  const emoji = emojiMatch ? emojiMatch[1] : null;
-                                  const text = cleanLine.replace(/^[•\-*⭐🔑🛠️🎯💰👉]+\s*/, '');
+                                if (isBullet) {
                                   return (
                                     <li key={lIdx} className="flex gap-3 items-start text-gray-700 dark:text-gray-300">
-                                      <span className="flex-shrink-0 mt-1">
-                                        {emoji || <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5" />}
-                                      </span>
-                                      <span className="leading-relaxed">{text}</span>
+                                      <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-2.5 flex-shrink-0" />
+                                      <span className="leading-relaxed text-lg">{cleanLine.replace(/^[•\-*]\s*/, '')}</span>
                                     </li>
-                                  );
+                                  )
                                 }
-                                // If first line of a "list block" looks like a header (bold)
-                                if (lIdx === 0 && cleanLine.length < 100) {
-                                  return <h4 key={lIdx} className="font-bold text-gray-900 dark:text-white mb-2">{cleanLine}</h4>
-                                }
-                                return <p key={lIdx} className="text-gray-700 dark:text-gray-300 mb-1">{cleanLine}</p>
+                                return <p key={lIdx} className="text-gray-900 dark:text-white font-semibold mb-2 text-lg">{cleanLine}</p>
                               })}
                             </ul>
-                          );
+                          )
                         }
 
-                        // Generic Heading Detection
-                        if (isHeading) {
-                          return <h3 key={idx} className="font-bold text-xl text-gray-900 dark:text-white mt-6 mb-3">{trimmedBlock}</h3>
-                        }
-
-                        // Default Paragraph
                         return (
-                          <p key={idx} className="text-gray-800 dark:text-gray-200 text-base leading-relaxed mb-4 last:mb-0">
+                          <p key={idx} className="text-gray-800 dark:text-gray-200 text-lg leading-relaxed text-justify">
                             {trimmedBlock}
                           </p>
                         );
@@ -362,53 +385,33 @@ Experience the difference with ${product.name} - your satisfaction is our priori
                     })()}
                   </div>
                 </div>
-              </div>
 
-              {result.seo_keywords && result.seo_keywords.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">SEO Keywords</h3>
-                  <div className="flex flex-wrap gap-2">
+                {/* SEO Keywords Chips */}
+                {result.seo_keywords && result.seo_keywords.length > 0 && (
+                  <div className="flex flex-wrap gap-2 animate-in fade-in delay-300">
                     {result.seo_keywords.map((keyword: string, index: number) => (
                       <span
                         key={index}
-                        className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                        className="px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-sm rounded-full font-medium shadow-sm"
                       >
-                        {keyword}
+                        #{keyword}
                       </span>
                     ))}
                   </div>
-                </div>
-              )}
-
-              {/* RAG Context Info */}
-              {result.rag_context && (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-                  <h3 className="text-sm font-medium text-green-800 mb-2">🧠 CSV RAG Context Used</h3>
-                  <div className="text-xs text-green-700 space-y-1">
-                    <p>✅ Target Product: {result.rag_context.targetProduct.name}</p>
-                    <p>📊 Similar Products: {result.rag_context.similarProducts.length} found</p>
-                    <p>🏷️ Category Products: {result.rag_context.categoryProducts.length} found</p>
-                    <p>🔍 Brand Products: {result.rag_context.brandProducts.length} found</p>
-                    <p>📝 Context generated from your CSV product database</p>
-                  </div>
-                </div>
-              )}
-
-              <div className="pt-4 border-t">
-                <a
-                  href="/review"
-                  className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700"
-                >
-                  📋 Go to Review Queue
-                </a>
+                )}
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <div className="text-gray-400 text-6xl mb-4">✨</div>
-              <p className="text-gray-500">Generated content will appear here</p>
-            </div>
-          )}
+            ) : (
+              <div className="h-[600px] flex flex-col items-center justify-center text-center bg-white/50 dark:bg-gray-800/50 rounded-2xl border-2 dashed border-gray-200 dark:border-gray-700">
+                <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-6">
+                  <Sparkles className="w-10 h-10 text-gray-300 dark:text-gray-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Ready to Create</h3>
+                <p className="text-gray-500 dark:text-gray-400 max-w-sm">
+                  Select a product from the database or enter a SKU to generate premium marketing content instantly.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
