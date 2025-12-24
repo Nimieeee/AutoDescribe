@@ -243,42 +243,124 @@ Experience the difference with ${product.name} - your satisfaction is our priori
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Generated Text</h3>
-                <div className="p-4 bg-gray-50 rounded-md border space-y-4">
-                  {result.generated_text?.split('\n\n').map((paragraph: string, idx: number) => {
-                    // Check if it's a heading (contains colon at end or specific patterns)
-                    const isHeading = paragraph.includes('Why') || paragraph.includes('Bottom Line') || paragraph.includes(':') && paragraph.length < 80;
-                    const isBullet = paragraph.trim().startsWith('•') || paragraph.trim().startsWith('-') || paragraph.trim().startsWith('⭐') || paragraph.trim().startsWith('🔑') || paragraph.trim().startsWith('🛠️') || paragraph.trim().startsWith('🎯') || paragraph.trim().startsWith('💰') || paragraph.trim().startsWith('👉');
+                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">Content Preview</h3>
+                <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
 
-                    if (isBullet || paragraph.includes('\n•') || paragraph.includes('\n-')) {
-                      // Render as bullet list
-                      const lines = paragraph.split('\n').filter((l: string) => l.trim());
-                      return (
-                        <ul key={idx} className="space-y-2 pl-2">
-                          {lines.map((line: string, lineIdx: number) => (
-                            <li key={lineIdx} className="text-gray-800 text-sm leading-relaxed flex items-start gap-2">
-                              {!line.trim().match(/^[•\-⭐🔑🛠️🎯💰👉]/) && <span className="text-blue-500">•</span>}
-                              <span>{line.replace(/^[•\-]\s*/, '')}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      );
-                    }
+                  <div className="p-6 md:p-8 space-y-6">
+                    {/* Enhanced Content Parser */}
+                    {(() => {
+                      const text = result.generated_text || '';
+                      // Split by double newlines to find potential sections
+                      const blocks = text.split(/\n\n+/);
 
-                    if (isHeading) {
-                      return (
-                        <h4 key={idx} className="font-semibold text-gray-900 text-base border-b pb-2 mt-4">
-                          {paragraph}
-                        </h4>
-                      );
-                    }
+                      return blocks.map((block: string, idx: number) => {
+                        const trimmedBlock = block.trim();
+                        if (!trimmedBlock) return null;
 
-                    return (
-                      <p key={idx} className="text-gray-800 text-sm leading-relaxed">
-                        {paragraph}
-                      </p>
-                    );
-                  })}
+                        // 1. Check for specific headers with icons
+                        const lowerBlock = trimmedBlock.toLowerCase();
+                        const isFeatureSection = lowerBlock.includes('why this') || lowerBlock.includes('stand out') || lowerBlock.includes('key features');
+                        const isBottomLine = lowerBlock.includes('bottom line') || lowerBlock.includes('conclusion');
+
+                        // 2. Headings detection
+                        // Matches: "Heading:", "Heading", or line ending with colon
+                        const headingMatch = trimmedBlock.match(/^([A-Z][\w\s\W]{3,50}?)(:|\n|$)/);
+                        // Reduced false positives for headings
+                        const isHeading = headingMatch && (headingMatch[0].length < 60 && (headingMatch[0].includes(':') || isFeatureSection || isBottomLine));
+
+                        if (isFeatureSection || isBottomLine) {
+                          // Split section into title and content (often bullets)
+                          const firstLineEnd = trimmedBlock.indexOf('\n');
+                          const title = firstLineEnd > -1 ? trimmedBlock.substring(0, firstLineEnd) : trimmedBlock;
+                          const content = firstLineEnd > -1 ? trimmedBlock.substring(firstLineEnd + 1) : '';
+
+                          return (
+                            <div key={idx} className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5 border border-gray-100 dark:border-gray-800">
+                              <h4 className="font-bold text-gray-900 dark:text-white text-lg mb-4 flex items-center gap-2 border-b dark:border-gray-700 pb-2">
+                                {isFeatureSection && '✨'}
+                                {isBottomLine && '🏁'}
+                                {title}
+                              </h4>
+                              {content && (
+                                <div className="space-y-3">
+                                  {content.split(/\n/).map((line, lIdx) => {
+                                    const cleanLine = line.trim();
+                                    if (!cleanLine) return null;
+
+                                    // Render list items nicely
+                                    if (cleanLine.match(/^[•\-*⭐🔑🛠️🎯💰👉]/)) {
+                                      // Extract emoji if present as bullet
+                                      const emojiMatch = cleanLine.match(/^([⭐🔑🛠️🎯💰👉]+)/);
+                                      const emoji = emojiMatch ? emojiMatch[1] : null;
+                                      const text = cleanLine.replace(/^[•\-*⭐🔑🛠️🎯💰👉]+\s*/, '');
+
+                                      return (
+                                        <div key={lIdx} className="flex gap-3 items-start text-gray-700 dark:text-gray-300 group hover:bg-white dark:hover:bg-gray-800 p-2 rounded transition-colors">
+                                          <span className="flex-shrink-0 mt-1 text-lg">
+                                            {emoji || <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2" />}
+                                          </span>
+                                          <span className="leading-relaxed font-medium">{text}</span>
+                                        </div>
+                                      );
+                                    }
+
+                                    return <p key={lIdx} className="text-gray-700 dark:text-gray-300 leading-relaxed">{cleanLine}</p>
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }
+
+                        // 3. Regular Paragraphs vs Lists
+                        // If block contains multiple bullet points, render as list
+                        if (trimmedBlock.includes('\n•') || trimmedBlock.includes('\n-') || trimmedBlock.match(/\n[⭐🔑🛠️🎯💰👉]/)) {
+                          const lines = trimmedBlock.split('\n');
+                          return (
+                            <ul key={idx} className="space-y-3 my-4">
+                              {lines.map((line, lIdx) => {
+                                const cleanLine = line.trim();
+                                if (!cleanLine) return null;
+
+                                const emojiMatch = cleanLine.match(/^([⭐🔑🛠️🎯💰👉]+)/);
+                                const isBullet = cleanLine.match(/^[•\-*]/);
+
+                                if (emojiMatch || isBullet) {
+                                  const emoji = emojiMatch ? emojiMatch[1] : null;
+                                  const text = cleanLine.replace(/^[•\-*⭐🔑🛠️🎯💰👉]+\s*/, '');
+                                  return (
+                                    <li key={lIdx} className="flex gap-3 items-start text-gray-700 dark:text-gray-300">
+                                      <span className="flex-shrink-0 mt-1">
+                                        {emoji || <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5" />}
+                                      </span>
+                                      <span className="leading-relaxed">{text}</span>
+                                    </li>
+                                  );
+                                }
+                                // If first line of a "list block" looks like a header (bold)
+                                if (lIdx === 0 && cleanLine.length < 100) {
+                                  return <h4 key={lIdx} className="font-bold text-gray-900 dark:text-white mb-2">{cleanLine}</h4>
+                                }
+                                return <p key={lIdx} className="text-gray-700 dark:text-gray-300 mb-1">{cleanLine}</p>
+                              })}
+                            </ul>
+                          );
+                        }
+
+                        // Generic Heading Detection
+                        if (isHeading) {
+                          return <h3 key={idx} className="font-bold text-xl text-gray-900 dark:text-white mt-6 mb-3">{trimmedBlock}</h3>
+                        }
+
+                        // Default Paragraph
+                        return (
+                          <p key={idx} className="text-gray-800 dark:text-gray-200 text-base leading-relaxed mb-4 last:mb-0">
+                            {trimmedBlock}
+                          </p>
+                        );
+                      });
+                    })()}
+                  </div>
                 </div>
               </div>
 
