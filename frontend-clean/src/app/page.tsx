@@ -318,7 +318,19 @@ Experience the difference with ${product.name} - your satisfaction is our priori
                       let currentSection: Section | null = null;
 
                       lines.forEach((line: string) => {
-                        const trimmed = line.trim();
+                        let trimmed = line.trim();
+                        if (!trimmed) return;
+
+                        // Remove REDUNDANT TITLE at start if present
+                        if (sections.length === 0) {
+                          const productName = result.products?.name || '';
+                          // Check for exact start match or fuzzy match
+                          if (productName && trimmed.toLowerCase().startsWith(productName.toLowerCase())) {
+                            trimmed = trimmed.substring(productName.length).trim();
+                            // Remove leading formatting characters often left behind
+                            trimmed = trimmed.replace(/^[:\-\–\—\s]+/, '');
+                          }
+                        }
                         if (!trimmed) return;
 
                         const lower = trimmed.toLowerCase();
