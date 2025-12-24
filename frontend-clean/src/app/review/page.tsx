@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { supabase, GeneratedContent } from '@/lib/supabase'
-import { 
-  RefreshCw, CheckCircle, XCircle, Clock, 
+import {
+  RefreshCw, CheckCircle, XCircle, Clock,
   BarChart3, AlertTriangle, Target, Trophy, Sparkles, FileText, AlertCircle
 } from 'lucide-react'
 
@@ -47,7 +47,7 @@ export default function ReviewPage() {
     try {
       const { error } = await supabase
         .from('generated_content')
-        .update({ 
+        .update({
           status,
           updated_at: new Date().toISOString()
         })
@@ -59,7 +59,7 @@ export default function ReviewPage() {
       }
 
       // Update local state
-      setContent(prev => prev.map(item => 
+      setContent(prev => prev.map(item =>
         item.id === id ? { ...item, status } : item
       ))
 
@@ -85,7 +85,7 @@ export default function ReviewPage() {
     try {
       const { error } = await supabase
         .from('generated_content')
-        .update({ 
+        .update({
           edited_text: editedText,
           updated_at: new Date().toISOString()
         })
@@ -98,12 +98,12 @@ export default function ReviewPage() {
       }
 
       // Update local state
-      setContent(prev => prev.map(item => 
+      setContent(prev => prev.map(item =>
         item.id === selectedItem.id ? { ...item, edited_text: editedText } : item
       ))
       setSelectedItem({ ...selectedItem, edited_text: editedText })
       setIsEditing(false)
-      
+
       // Show success message
       alert('Changes saved successfully!')
     } catch (error) {
@@ -117,7 +117,7 @@ export default function ReviewPage() {
     setEditedText('')
   }
 
-  const filteredItems = content.filter(item => 
+  const filteredItems = content.filter(item =>
     filter === 'all' || item.status === filter
   )
 
@@ -168,18 +168,17 @@ export default function ReviewPage() {
         <div className="lg:col-span-1 bg-white rounded-lg shadow">
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Review Queue</h2>
-            
+
             {/* Filter Tabs */}
             <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
               {(['all', 'pending', 'approved', 'rejected'] as const).map((filterOption) => (
                 <button
                   key={filterOption}
                   onClick={() => setFilter(filterOption)}
-                  className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                    filter === filterOption
+                  className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${filter === filterOption
                       ? 'bg-white text-blue-600 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
-                  }`}
+                    }`}
                 >
                   {filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
                 </button>
@@ -197,9 +196,8 @@ export default function ReviewPage() {
                 <div
                   key={item.id}
                   onClick={() => setSelectedItem(item)}
-                  className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-                    selectedItem?.id === item.id ? 'bg-blue-50 border-blue-200' : ''
-                  }`}
+                  className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${selectedItem?.id === item.id ? 'bg-blue-50 border-blue-200' : ''
+                    }`}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(item.status)}`}>
@@ -259,7 +257,7 @@ export default function ReviewPage() {
                     </button>
                   )}
                 </div>
-                
+
                 {isEditing ? (
                   <div className="space-y-3">
                     <textarea
@@ -326,15 +324,14 @@ export default function ReviewPage() {
                       {showScoreBreakdown ? '🔼 Hide Details' : '🔽 Show Details'}
                     </button>
                   </div>
-                  
+
                   <div className="flex items-center mb-3">
                     <div className="flex-1 bg-gray-200 rounded-full h-3">
-                      <div 
-                        className={`h-3 rounded-full ${
-                          selectedItem.quality_score >= 0.9 ? 'bg-green-500' :
-                          selectedItem.quality_score >= 0.7 ? 'bg-blue-500' :
-                          selectedItem.quality_score >= 0.4 ? 'bg-yellow-500' : 'bg-red-500'
-                        }`}
+                      <div
+                        className={`h-3 rounded-full ${selectedItem.quality_score >= 0.9 ? 'bg-green-500' :
+                            selectedItem.quality_score >= 0.7 ? 'bg-blue-500' :
+                              selectedItem.quality_score >= 0.4 ? 'bg-yellow-500' : 'bg-red-500'
+                          }`}
                         style={{ width: `${selectedItem.quality_score * 100}%` }}
                       ></div>
                     </div>
@@ -348,7 +345,7 @@ export default function ReviewPage() {
                       <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
                         📊 5-Dimensional Scoring System
                       </h4>
-                      
+
                       {/* Score Dimensions */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="space-y-2">
@@ -406,14 +403,13 @@ export default function ReviewPage() {
                       <div className="pt-2 border-t border-gray-200">
                         <div className="flex justify-between items-center">
                           <span className="text-xs text-gray-600">Overall Quality Level:</span>
-                          <span className={`text-xs font-semibold px-2 py-1 rounded ${
-                            selectedItem.quality_score >= 0.9 ? 'bg-green-100 text-green-800' :
-                            selectedItem.quality_score >= 0.7 ? 'bg-blue-100 text-blue-800' :
-                            selectedItem.quality_score >= 0.4 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
-                          }`}>
+                          <span className={`text-xs font-semibold px-2 py-1 rounded ${selectedItem.quality_score >= 0.9 ? 'bg-green-100 text-green-800' :
+                              selectedItem.quality_score >= 0.7 ? 'bg-blue-100 text-blue-800' :
+                                selectedItem.quality_score >= 0.4 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
+                            }`}>
                             {selectedItem.quality_score >= 0.9 ? '🏆 Excellent' :
-                             selectedItem.quality_score >= 0.7 ? '✨ Good' :
-                             selectedItem.quality_score >= 0.4 ? '📝 Fair' : '🚨 Poor'}
+                              selectedItem.quality_score >= 0.7 ? '✨ Good' :
+                                selectedItem.quality_score >= 0.4 ? '📝 Fair' : '🚨 Poor'}
                           </span>
                         </div>
                       </div>
@@ -439,23 +435,38 @@ export default function ReviewPage() {
                 </div>
               )}
 
-              {/* Action Buttons */}
-              {selectedItem.status === 'pending' && (
-                <div className="flex space-x-3">
+              {/* Action Buttons - Step 8 */}
+              <div className="flex space-x-3 pt-4 border-t border-gray-100">
+                {selectedItem.status === 'pending' && (
+                  <>
+                    <button
+                      onClick={() => updateStatus(selectedItem.id, 'approved')}
+                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium"
+                    >
+                      ✅ Approve
+                    </button>
+                    <button
+                      onClick={() => updateStatus(selectedItem.id, 'rejected')}
+                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 font-medium"
+                    >
+                      ❌ Reject
+                    </button>
+                  </>
+                )}
+
+                {selectedItem.status === 'approved' && (
                   <button
-                    onClick={() => updateStatus(selectedItem.id, 'approved')}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                    onClick={() => {
+                      navigator.clipboard.writeText(selectedItem.edited_text || selectedItem.generated_text)
+                      alert('Content copied to clipboard! Ready for export.')
+                    }}
+                    className="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 font-medium flex items-center"
                   >
-                    ✅ Approve
+                    <FileText className="w-4 h-4 mr-2" />
+                    Step 8: Export (Copy)
                   </button>
-                  <button
-                    onClick={() => updateStatus(selectedItem.id, 'rejected')}
-                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                  >
-                    ❌ Reject
-                  </button>
-                </div>
-              )}
+                )}
+              </div>
 
               {/* Metadata */}
               <div className="mt-6 pt-6 border-t border-gray-200">

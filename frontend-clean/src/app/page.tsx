@@ -16,7 +16,7 @@ export default function GeneratePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [searching, setSearching] = useState(false)
-  
+
   const { trackPageView, trackSearch, trackGenerationRequest, trackUserInteraction } = useKPITracking()
 
   useEffect(() => {
@@ -31,11 +31,11 @@ export default function GeneratePage() {
 
     setSearching(true)
     const startTime = Date.now()
-    
+
     try {
       const products = await csvRAGService.searchProducts(query, 10)
       setSearchResults(products)
-      
+
       // Track search event
       const responseTime = Date.now() - startTime
       trackSearch(query, products.length, responseTime)
@@ -50,7 +50,7 @@ export default function GeneratePage() {
     setProductSku(product.sku)
     setSearchResults([])
     setSearchQuery('')
-    
+
     // Track product selection
     trackUserInteraction('select', 'product_search_result', {
       sku: product.sku,
@@ -67,7 +67,7 @@ export default function GeneratePage() {
     setGenerating(true)
     setError(null)
     setResult(null)
-    
+
     // Track generation request
     trackGenerationRequest(productSku, contentType)
 
@@ -133,21 +133,19 @@ Experience the difference with ${product.name} - your satisfaction is our priori
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Input Form */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Content Generation</h2>
-          
-          <div className="space-y-4">
-            {/* Product Search with Suggestions */}
+        {/* Input Form - Step 1 & 2 */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="border-b border-gray-100 pb-4 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900">Step 1: Input & Search</h2>
+            <p className="text-sm text-gray-500">Find a product to generate description for</p>
+          </div>
+
+          <div className="space-y-6">
+            {/* Step 2: Search */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search Products (CSV Data)
+                2. Search Product Database (CSV)
               </label>
-              <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
-                <p className="text-xs text-blue-700">
-                  💡 <span className="font-medium">First-time search tip:</span> Initial searches may take a moment as we index your data. Subsequent searches will be much faster!
-                </p>
-              </div>
               <SearchSuggestions
                 query={searchQuery}
                 onSelect={(suggestion) => {
@@ -159,32 +157,24 @@ Experience the difference with ${product.name} - your satisfaction is our priori
                       value: suggestion.value
                     })
                   } else {
-                    // For category/brand selections, just update the search query
-                    // The SearchSuggestions component will handle showing results
                     setSearchQuery(suggestion.value)
-                    trackUserInteraction('select', 'search_suggestion', {
-                      type: suggestion.type,
-                      value: suggestion.value
-                    })
                   }
                 }}
-                onSearch={(query) => {
-                  setSearchQuery(query)
-                }}
-                placeholder="Search by product name, SKU, brand, or category..."
+                onSearch={(query) => setSearchQuery(query)}
+                placeholder="Search by name, brand, or category..."
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Product SKU
+                Selected SKU
               </label>
               <input
                 type="text"
                 value={productSku}
                 onChange={(e) => setProductSku(e.target.value)}
-                placeholder="Enter SKU or search above (e.g., B00GS8W3T4)"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., B00GS8W3T4"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
               />
             </div>
 
@@ -200,18 +190,18 @@ Experience the difference with ${product.name} - your satisfaction is our priori
                 <option value="description">Product Description</option>
                 <option value="features">Feature List</option>
                 <option value="benefits">Benefits Summary</option>
-                <option value="seo">SEO Content</option>
+                <option value="seo">SEO Optimized Content</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Custom Instructions (Optional)
+                Custom Focus (Optional)
               </label>
               <textarea
                 value={customPrompt}
                 onChange={(e) => setCustomPrompt(e.target.value)}
-                placeholder="Add specific requirements or focus areas..."
+                placeholder="e.g., Focus on durability and eco-friendly materials..."
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -220,14 +210,23 @@ Experience the difference with ${product.name} - your satisfaction is our priori
             <button
               onClick={handleGenerate}
               disabled={generating}
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
+              className="w-full bg-blue-600 text-white px-4 py-3 rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
             >
-              {generating ? 'Generating with CSV Context...' : 'Generate Content with RAG'}
+              {generating ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                  <span>Processing Pipeline (Steps 3-6)...</span>
+                </>
+              ) : (
+                <>
+                  <span>🚀 Run Generation Pipeline</span>
+                </>
+              )}
             </button>
 
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-red-600 text-sm">{error}</p>
+              <div className="p-4 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm">
+                Error: {error}
               </div>
             )}
           </div>
@@ -236,7 +235,7 @@ Experience the difference with ${product.name} - your satisfaction is our priori
         {/* Output */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Generated Content</h2>
-          
+
           {result ? (
             <div className="space-y-4">
               <div className="p-4 bg-green-50 border border-green-200 rounded-md">
