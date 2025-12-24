@@ -49,8 +49,10 @@ export default function SearchSuggestions({
   const fetchSuggestions = async (searchQuery: string) => {
     setLoading(true)
     try {
-      // Get backend URL from environment
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '/api/proxy'
+      // Use relative path for proxy
+      const backendUrl = '/api/proxy'
+
+      console.log('Fetching suggestions from:', backendUrl)
 
       // Fetch suggestions from multiple endpoints
       const [productsRes, categoriesRes, brandsRes] = await Promise.all([
