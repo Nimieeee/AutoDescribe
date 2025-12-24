@@ -17,7 +17,18 @@ const nextConfig = {
       config.cache = false;
     }
     return config;
-  }
+  },
+  experimental: {
+    missingSuspenseWithCSRBailout: false,
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/api/proxy/:path*',
+        destination: 'http://164.68.122.165:3000/api/:path*',
+      },
+    ]
+  },
 }
 
 module.exports = nextConfig

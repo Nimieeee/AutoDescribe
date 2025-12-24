@@ -50,7 +50,7 @@ export default function SearchSuggestions({
     setLoading(true)
     try {
       // Get backend URL from environment
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '/api/proxy'
 
       // Fetch suggestions from multiple endpoints
       const [productsRes, categoriesRes, brandsRes] = await Promise.all([
