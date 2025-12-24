@@ -286,101 +286,182 @@ Experience the difference with ${product.name} - your satisfaction is our priori
                         {result.products?.sku}
                       </span>
                       <span>•</span>
-                      <span>{result.products?.brandName || 'Unknown Brand'}</span>
+                      <span>{result.products?.brandName || result.products?.brand || ''}</span>
                     </div>
                   </div>
 
                   {/* Content Body */}
-                  <div className="p-6 md:p-10 space-y-8">
-                    {/* Enhanced Content Parser REFACTORED */}
+                  <div className="p-6 md:p-10 space-y-6">
+                    {/* METICULOUS CONTENT PARSER v3 */}
                     {(() => {
-                      const text = result.generated_text || '';
-                      // Remove markdown bolding artifacts if present
-                      const cleanText = text.replace(/\*\*/g, '');
+                      const rawText = result.generated_text || '';
+                      // Clean markdown artifacts
+                      const text = rawText.replace(/\*\*/g, '').replace(/\*/g, '');
 
-                      const blocks = cleanText.split(/\n\n+/);
+                      // Split by newlines (handle both \n and missing newlines before emojis)
+                      // Insert newlines before emoji bullets that might be inline
+                      const normalizedText = text
+                        .replace(/\s+(⭐|🔑|🛠️|🎯|💰|👉|✨|🏁)/g, '\n$1')
+                        .replace(/\s+(Why This|Bottom Line|Key Features|Specifications)/gi, '\n$1');
 
-                      return blocks.map((block: string, idx: number) => {
-                        const trimmedBlock = block.trim();
-                        if (!trimmedBlock) return null;
+                      const lines = normalizedText.split(/\n/);
 
-                        // Detect Header sections
-                        const lowerBlock = trimmedBlock.toLowerCase();
-                        const isFeatureSection = lowerBlock.includes('why this') || lowerBlock.includes('stand out') || lowerBlock.includes('key features') || lowerBlock.includes('specifications');
-                        const isBottomLine = lowerBlock.includes('bottom line') || lowerBlock.includes('conclusion') || lowerBlock.includes('verdict');
+                      // Parse into structured sections
+                      type Section = {
+                        type: 'intro' | 'header' | 'feature-section' | 'bottom-line' | 'bullet' | 'paragraph' | 'cta';
+                        content: string;
+                        emoji?: string;
+                        bullets?: { emoji: string | null; text: string }[];
+                      };
 
-                        // Heuristic for simple headers (Short line, usually ends with colon or is just a title)
-                        const isSimpleHeader = trimmedBlock.length < 80 && !trimmedBlock.includes('\n') && (trimmedBlock.endsWith(':') || /^[A-Z]/.test(trimmedBlock));
+                      const sections: Section[] = [];
+                      let currentSection: Section | null = null;
 
-                        if (isFeatureSection || isBottomLine) {
-                          const firstLineEnd = trimmedBlock.indexOf('\n');
-                          const title = firstLineEnd > -1 ? trimmedBlock.substring(0, firstLineEnd) : trimmedBlock;
-                          const content = firstLineEnd > -1 ? trimmedBlock.substring(firstLineEnd + 1) : '';
+                      lines.forEach((line: string) => {
+                        const trimmed = line.trim();
+                        if (!trimmed) return;
 
-                          return (
-                            <div key={idx} className={`rounded-xl p-6 md:p-8 border ${isBottomLine ? 'bg-blue-50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-800' : 'bg-gray-50 dark:bg-gray-900/50 border-gray-100 dark:border-gray-800'}`}>
-                              <h3 className="font-bold text-xl text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                                {isFeatureSection && <span className="text-amber-500">✨</span>}
-                                {isBottomLine && <span className="text-blue-500">🏁</span>}
-                                {title.replace(/:$/, '')}
-                              </h3>
-                              <div className="space-y-4">
-                                {content.split(/\n/).map((line, lIdx) => {
-                                  const cleanLine = line.trim();
-                                  if (!cleanLine) return null;
-                                  // Parse list items
-                                  if (cleanLine.match(/^[•\-*⭐🔑🛠️🎯💰👉]/)) {
-                                    const emojiMatch = cleanLine.match(/^([⭐🔑🛠️🎯💰👉]+)/);
-                                    const emoji = emojiMatch ? emojiMatch[1] : null;
-                                    const text = cleanLine.replace(/^[•\-*⭐🔑🛠️🎯💰👉]+\s*/, '');
-                                    return (
-                                      <div key={lIdx} className="flex gap-4 items-start text-gray-700 dark:text-gray-300">
-                                        <span className="flex-shrink-0 mt-1 text-lg">
-                                          {emoji || <div className="w-2 h-2 rounded-full bg-blue-500 mt-2" />}
-                                        </span>
-                                        <span className="leading-relaxed text-base">{text}</span>
-                                      </div>
-                                    );
-                                  }
-                                  return <p key={lIdx} className="text-gray-700 dark:text-gray-300 leading-relaxed text-base">{cleanLine}</p>
-                                })}
+                        const lower = trimmed.toLowerCase();
+
+                        // Detect section headers
+                        const isFeatureHeader = lower.includes('why this') || lower.includes('stands out') || lower.includes('key features') || lower.includes('specifications');
+                        const isBottomLine = lower.includes('bottom line');
+                        const isCTA = trimmed.startsWith('👉');
+
+                        // Detect emoji bullets
+                        const emojiBulletMatch = trimmed.match(/^(⭐|🔑|🛠️|🎯|💰)\s*/);
+                        const regularBulletMatch = trimmed.match(/^[•\-]\s*/);
+
+                        if (isFeatureHeader) {
+                          // Save previous section
+                          if (currentSection) sections.push(currentSection);
+                          currentSection = {
+                            type: 'feature-section',
+                            content: trimmed.replace(/:$/, ''),
+                            bullets: []
+                          };
+                        } else if (isBottomLine) {
+                          if (currentSection) sections.push(currentSection);
+                          currentSection = {
+                            type: 'bottom-line',
+                            content: trimmed.replace(/:$/, ''),
+                            bullets: []
+                          };
+                        } else if (isCTA) {
+                          if (currentSection) sections.push(currentSection);
+                          sections.push({
+                            type: 'cta',
+                            content: trimmed.replace(/^👉\s*/, '')
+                          });
+                          currentSection = null;
+                        } else if (emojiBulletMatch) {
+                          const emoji = emojiBulletMatch[1];
+                          const bulletText = trimmed.replace(emojiBulletMatch[0], '');
+                          if (currentSection && (currentSection.type === 'feature-section' || currentSection.type === 'bottom-line')) {
+                            currentSection.bullets!.push({ emoji, text: bulletText });
+                          } else {
+                            // Standalone bullet
+                            if (currentSection) sections.push(currentSection);
+                            sections.push({
+                              type: 'bullet',
+                              content: bulletText,
+                              emoji: emoji
+                            });
+                            currentSection = null;
+                          }
+                        } else if (regularBulletMatch) {
+                          const bulletText = trimmed.replace(regularBulletMatch[0], '');
+                          if (currentSection && currentSection.bullets) {
+                            currentSection.bullets.push({ emoji: null, text: bulletText });
+                          } else {
+                            sections.push({ type: 'bullet', content: bulletText });
+                          }
+                        } else {
+                          // Regular paragraph text
+                          // Check if it's a product title (first substantial line, usually long)
+                          if (sections.length === 0 && trimmed.length > 50) {
+                            sections.push({ type: 'intro', content: trimmed });
+                          } else if (currentSection && currentSection.type === 'bottom-line') {
+                            // Add as paragraph content to bottom line
+                            currentSection.bullets!.push({ emoji: null, text: trimmed });
+                          } else {
+                            if (currentSection) sections.push(currentSection);
+                            sections.push({ type: 'paragraph', content: trimmed });
+                            currentSection = null;
+                          }
+                        }
+                      });
+
+                      // Don't forget the last section
+                      if (currentSection) sections.push(currentSection);
+
+                      // RENDER
+                      return sections.map((section, idx) => {
+                        switch (section.type) {
+                          case 'intro':
+                            return (
+                              <div key={idx} className="text-xl md:text-2xl font-medium text-gray-800 dark:text-gray-100 leading-relaxed border-l-4 border-blue-500 pl-6 py-2">
+                                {section.content}
                               </div>
-                            </div>
-                          );
-                        }
+                            );
 
-                        if (isSimpleHeader) {
-                          return <h3 key={idx} className="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4 border-l-4 border-blue-500 pl-4">{trimmedBlock}</h3>
-                        }
+                          case 'feature-section':
+                            return (
+                              <div key={idx} className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 rounded-2xl p-6 md:p-8 border border-amber-100 dark:border-amber-800/30">
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+                                  <span className="text-2xl">✨</span>
+                                  {section.content}
+                                </h3>
+                                <div className="space-y-4">
+                                  {section.bullets?.map((bullet, bIdx) => (
+                                    <div key={bIdx} className="flex gap-4 items-start">
+                                      <span className="flex-shrink-0 text-xl mt-0.5">{bullet.emoji || '•'}</span>
+                                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-base">{bullet.text}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
 
-                        // Lists inside normal blocks
-                        if (trimmedBlock.includes('\n•') || trimmedBlock.includes('\n-')) {
-                          const lines = trimmedBlock.split('\n');
-                          return (
-                            <ul key={idx} className="my-6 space-y-3 pl-4">
-                              {lines.map((line, lIdx) => {
-                                const cleanLine = line.trim();
-                                if (!cleanLine) return null;
-                                const isBullet = cleanLine.match(/^[•\-*]/);
-                                if (isBullet) {
-                                  return (
-                                    <li key={lIdx} className="flex gap-3 items-start text-gray-700 dark:text-gray-300">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-2.5 flex-shrink-0" />
-                                      <span className="leading-relaxed text-lg">{cleanLine.replace(/^[•\-*]\s*/, '')}</span>
-                                    </li>
-                                  )
-                                }
-                                return <p key={lIdx} className="text-gray-900 dark:text-white font-semibold mb-2 text-lg">{cleanLine}</p>
-                              })}
-                            </ul>
-                          )
-                        }
+                          case 'bottom-line':
+                            return (
+                              <div key={idx} className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-2xl p-6 md:p-8 border border-blue-100 dark:border-blue-800/30">
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-3">
+                                  <span className="text-2xl">🏁</span>
+                                  {section.content}
+                                </h3>
+                                <div className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg space-y-3">
+                                  {section.bullets?.map((item, bIdx) => (
+                                    <p key={bIdx}>{item.text}</p>
+                                  ))}
+                                </div>
+                              </div>
+                            );
 
-                        return (
-                          <p key={idx} className="text-gray-800 dark:text-gray-200 text-lg leading-relaxed text-justify">
-                            {trimmedBlock}
-                          </p>
-                        );
+                          case 'bullet':
+                            return (
+                              <div key={idx} className="flex gap-4 items-start pl-2">
+                                <span className="flex-shrink-0 text-xl mt-0.5">{section.emoji || '•'}</span>
+                                <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-base">{section.content}</p>
+                              </div>
+                            );
+
+                          case 'cta':
+                            return (
+                              <div key={idx} className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl p-5 font-semibold text-lg flex items-center gap-3 shadow-lg shadow-green-500/20">
+                                <span className="text-2xl">👉</span>
+                                {section.content}
+                              </div>
+                            );
+
+                          case 'paragraph':
+                          default:
+                            return (
+                              <p key={idx} className="text-gray-700 dark:text-gray-300 text-lg leading-relaxed">
+                                {section.content}
+                              </p>
+                            );
+                        }
                       });
                     })()}
                   </div>
