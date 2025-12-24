@@ -23,7 +23,7 @@ export default function ReviewPage() {
   const loadContent = async () => {
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '/api/proxy'
-      const response = await fetch(`${backendUrl}/api/content`)
+      const response = await fetch(`${backendUrl}/content`)
 
       if (!response.ok) {
         throw new Error('Failed to fetch content')
@@ -41,7 +41,7 @@ export default function ReviewPage() {
   const updateStatus = async (id: string, status: 'approved' | 'rejected') => {
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '/api/proxy'
-      const response = await fetch(`${backendUrl}/api/content/${id}`, {
+      const response = await fetch(`${backendUrl}/content/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ export default function ReviewPage() {
 
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '/api/proxy'
-      const response = await fetch(`${backendUrl}/api/content/${selectedItem.id}`, {
+      const response = await fetch(`${backendUrl}/content/${selectedItem.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

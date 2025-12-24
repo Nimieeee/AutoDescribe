@@ -55,8 +55,8 @@ export class CSVRAGService {
     error?: string;
   }> {
     try {
-      // Try backend API first
-      const response = await fetch(`${this.apiUrl}/api/generate-with-rag`, {
+      // Try backend API first (proxy adds /api/ prefix)
+      const response = await fetch(`${this.apiUrl}/generate-with-rag`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -144,9 +144,9 @@ Experience the difference with ${product.name} - your satisfaction is our priori
    */
   async searchProducts(query: string, limit: number = 10): Promise<Product[]> {
     try {
-      // First try backend API
+      // First try backend API (proxy adds /api/ prefix)
       const response = await fetch(
-        `${this.apiUrl}/api/search-products?q=${encodeURIComponent(query)}&limit=${limit}`,
+        `${this.apiUrl}/search-products?q=${encodeURIComponent(query)}&limit=${limit}`,
         {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' }
@@ -239,7 +239,7 @@ Experience the difference with ${product.name} - your satisfaction is our priori
    */
   async getProductBySku(sku: string): Promise<Product | null> {
     try {
-      const response = await fetch(`${this.apiUrl}/api/product/${sku}`);
+      const response = await fetch(`${this.apiUrl}/product/${sku}`);
 
       if (!response.ok) {
         return null;

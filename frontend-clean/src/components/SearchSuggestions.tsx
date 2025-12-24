@@ -54,11 +54,11 @@ export default function SearchSuggestions({
 
       console.log('Fetching suggestions from:', backendUrl)
 
-      // Fetch suggestions from multiple endpoints
+      // Fetch suggestions from multiple endpoints (proxy adds /api/ prefix)
       const [productsRes, categoriesRes, brandsRes] = await Promise.all([
-        fetch(`${backendUrl}/api/search-products?q=${encodeURIComponent(searchQuery)}&limit=5`),
-        fetch(`${backendUrl}/api/search-category?category=${encodeURIComponent(searchQuery)}&limit=3`),
-        fetch(`${backendUrl}/api/search-brand?brand=${encodeURIComponent(searchQuery)}&limit=3`)
+        fetch(`${backendUrl}/search-products?q=${encodeURIComponent(searchQuery)}&limit=5`),
+        fetch(`${backendUrl}/search-category?category=${encodeURIComponent(searchQuery)}&limit=3`),
+        fetch(`${backendUrl}/search-brand?brand=${encodeURIComponent(searchQuery)}&limit=3`)
       ])
 
       const [products, categories, brands] = await Promise.all([
