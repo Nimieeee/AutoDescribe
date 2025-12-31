@@ -25,7 +25,7 @@ const nextConfig = {
     return [
       {
         source: '/api/proxy/:path*',
-        destination: 'http://164.68.122.165:3000/api/:path*',
+        destination: 'http://185.247.119.212:3000/api/:path*',
       },
     ]
   },
