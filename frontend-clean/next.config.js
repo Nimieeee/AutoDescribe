@@ -25,7 +25,7 @@ const nextConfig = {
     return [
       {
         source: '/api/proxy/:path*',
-        destination: 'http://15.237.208.231/api/:path*',
+        destination: 'http://15.237.208.231.sslip.io/api/:path*',
       },
     ]
   },
